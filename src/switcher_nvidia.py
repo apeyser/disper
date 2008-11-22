@@ -15,6 +15,7 @@
 
 import re
 import sys
+import logging
 
 import xrandr
 
@@ -27,14 +28,15 @@ class NVidiaSwitcher:
     # NV-CONTROL
     xsock        = None
     xconn        = None
-    xscreen        = None
-    NVCtrl        = None
-    nvctrlv        = (0,0)
-    gpucount    = 0
+    xscreen      = None
+    NVCtrl       = None
+    nvctrlv      = (0,0)
+    gpucount     = 0
 
-    ngpu        = 0 # default gpu number
+    ngpu         = 0 # default gpu number
 
     def __init__(self):
+        self.log = logging.getLogger('nVidia')
         self.init_NV_CONTROL()
         self.validate_GPU_count()
 
@@ -79,7 +81,7 @@ class NVidiaSwitcher:
         mmid = self._find_metamode_clone(res)
         if mmid < 0:
             mm = ', '.join([res+'+0+0']*len(displays))
-            self.info('adding metamode: %s'%mm)
+            self.log.info('adding metamode: %s'%mm)
             nvctrl.add_screen_metamode( self.xsock, self.NVCtrl.major_opcode, self.xscreen, mm )
             mmid = self._find_metamode_clone(res)
 
@@ -87,7 +89,7 @@ class NVidiaSwitcher:
         # this must be put _after_ metamode creation or the Xorg driver restarts
         ret = nvctrl.set_screen_associated_displays( self.xsock, self.NVCtrl.major_opcode, self.xscreen, displays )
         if not ret:
-            self.info('ERROR: could not attach displays to screen #%d: %s'%(self.xscreen, str(displays)))
+            self.log.error('could not attach displays to screen #%d: %s'%(self.xscreen, str(displays)))
 
         # change to this mode using xrandr and refresh as id
         screen = xrandr.get_current_screen()
@@ -98,7 +100,7 @@ class NVidiaSwitcher:
                 sizeidx = i
         if sizeidx == None:
             raise SystemExit( "Could not set display mode: resolution not found (this is a bug)" )
-        self.info('setting xrandr: [%d] %s / %d'%(sizeidx, res, mmid))
+        self.log.info('setting xrandr: (%d) %s / %d'%(sizeidx, res, mmid))
         screen.set_size_index(sizeidx)
         screen.set_refresh_rate(mmid)
         screen.apply_config()
@@ -127,9 +129,6 @@ class NVidiaSwitcher:
             if found: return int(id)
 
         return -1
-
-    def info(self, str):
-        print '[nVidia] '+str
 
 
 ###############################################################################
