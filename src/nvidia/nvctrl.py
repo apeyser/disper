@@ -631,7 +631,7 @@ class NVidiaControl:
 
 
     def get_version(self):
-        ''' this function uses NVCtrlQueryExtension to get
+        '''this function uses NVCtrlQueryExtension to get
         the major and minor versions of the NV-CONTROL extension
         in use. returned as a tuple (major,minor)'''
 
@@ -650,7 +650,7 @@ class NVidiaControl:
 
 
     def query_int_attribute(self, target, displays, attr):
-
+        '''return the value of an integer attribute'''
         display_mask = self._displays2mask(displays)
         rq = _NVCtrlQueryAttributeRequest(self.opcode, target.id(),
             target.type(), display_mask, attr)
@@ -663,8 +663,8 @@ class NVidiaControl:
 
 
     def set_int_attribute(self, target, displays, attr, value):
-
-        if type(target.type) != Screen:
+        '''set the value of an integer attribute. target has to be a Screen.'''
+        if not isinstance(target, Screen):
             raise ValueError( 'SetIntAttribute can only be executed on a screen' )
 
         display_mask = self._displays2mask(displays)
@@ -679,7 +679,7 @@ class NVidiaControl:
 
 
     def query_string_attribute(self, target, displays, attr):
-
+        '''return the value of a string attribute'''
         display_mask = self._displays2mask(displays)
         rq = _NVCtrlQueryStringAttributeRequest(self.opcode, target.id(),
             target.type(), display_mask, attr)
@@ -692,8 +692,8 @@ class NVidiaControl:
 
 
     def set_string_attribute(self, target, displays, attr, data):
-
-        if type(target.type) != Screen:
+        '''set the value of a string attribute. target has to be a Screen.'''
+        if not isinstance(target, Screen):
             raise ValueError( 'SetStringAttribute can only be executed on a screen' )
 
         display_mask = self._displays2mask(displays)
@@ -708,7 +708,7 @@ class NVidiaControl:
 
 
     def query_target_count(self, target):
-
+        '''return the target count'''
         rq = _NVCtrlQueryTargetCountRequest(self.opcode, target.type())
         binrp = minx.Xchange(self.xsock, rq)
 
@@ -719,7 +719,7 @@ class NVidiaControl:
 
 
     def query_binary_data(self, target, displays, attr):
-
+        '''return binary data'''
         display_mask = self._displays2mask(displays)
         rq = _NVCtrlQueryBinaryDataRequest(self.opcode, target.id(),
             target.type(), display_mask, attr)
@@ -732,7 +732,6 @@ class NVidiaControl:
 
 
     def query_valid_attr_values(self, target, displays, attr):
-
         display_mask = self._displays2mask(displays)
         rq = _NVCtrlQueryValidAttributeValuesRequest(self.opcode, target.id(),
             target.type(), display_mask, attr)
@@ -745,8 +744,7 @@ class NVidiaControl:
 
 
     def get_valid_attr_values(self, target, attr):
-
-        if type(target.type) != GPU:
+        if not isinstance(target, GPU):
             raise ValueError( 'GetValidAttributeValues can only be executed on a GPU' )
 
         vv = query_valid_attr_values(target.id(),
@@ -756,7 +754,7 @@ class NVidiaControl:
 
 
     def string_operation(self, target, displays, attr, data):
-
+        '''execute a string operation'''
         display_mask = self._displays2mask(displays)
         rq = _NVCtrlStringOperationRequest(self.opcode, target.id(),
             target.type(), display_mask, attr, data)
@@ -769,7 +767,7 @@ class NVidiaControl:
 
 
     def _displays2mask(self, displays):
-        '''Return a display mask from an array of display numbers.'''
+        '''return a display mask from an array of display numbers.'''
         mask = 0
         for d in displays:
             mask += (1 << d)
@@ -777,7 +775,7 @@ class NVidiaControl:
 
 
     def _mask2displays(self, mask):
-        '''Return an array of display numbers from a display mask.'''
+        '''return an array of display numbers from a display mask.'''
         displays = []
         for i in range(32):
             if mask & (1<<i):

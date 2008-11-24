@@ -258,6 +258,12 @@ class NVidiaControl(NVidiaControlLowLevel):
         res = self.string_operation(target, [display], NV_CTRL_STRING_OPERATION_BUILD_MODEPOOL, opt)
         return res.flags
 
+    def get_screen_associated_displays(self, target):
+        '''return array of display devices that are "associated" with the
+        specified X screen.'''
+        res = self.query_int_attribute(target, [], NV_CTRL_ASSOCIATED_DISPLAY_DEVICES)
+        return self._mask2displays(res.value)
+
     def set_screen_associated_displays(self, target, displays):
         '''set which display devices are "associated" with the specified X
         screen (ie: are available to the X screen for displaying the X

@@ -44,14 +44,22 @@ class NVidiaSwitcher:
 
     def get_display_res(self, ndisp):
         '''return an array of supported resolutions for a display'''
-        # enable display
+        # Get display resolutions. The display needs to have it associated to
+        # the X screen to be able to do this. So we check that it is associated
+        # first and do so when needed. Restore associated displays afterwards.
+        newass = oldass = set(self.nv.get_screen_associated_displays(self.screen))
+        newass.add(ndisp)
+        self.nv.set_screen_associated_displays(self.screen, newass)
         self.nv.build_modepool(self.screen, ndisp)
         modelines=self.nv.get_display_modelines(self.screen, ndisp)
+        self.nv.set_screen_associated_displays(self.screen, oldass)
+
         res = set()
         for m in modelines:
             r = re.search(r'::\s*"(\d+x\d+)"', m)
             if not r: continue
             res.add(r.group(1))
+
         return res
 
     def switch_clone(self, res, displays=None):
@@ -63,7 +71,7 @@ class NVidiaSwitcher:
         # set scaling modes to aspect-ratio scaled
         # this fails if it's done for all of them at once, so do it separately
         for d in displays:
-            self.nv.set_scaling(self.screen, 'best fit', 'aspect scaled')
+            self.nv.set_screen_scaling(self.screen, d, 'best fit', 'aspect scaled')
 
         # find suitable metamode, or create one if needed
         mmid = self._find_metamode_clone(res)
@@ -75,7 +83,7 @@ class NVidiaSwitcher:
 
         # enable all displays
         # this must be put _after_ metamode creation or the Xorg driver restarts
-        ret = self.nv.set_associated_displays(self.screen, displays)
+        ret = self.nv.set_screen_associated_displays(self.screen, displays)
         if not ret:
             self.log.error('could not attach displays to screen #%d: %s'%(self.screen, str(displays)))
 
