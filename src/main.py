@@ -16,7 +16,7 @@ import sys
 import logging
 import optparse
 
-from switcher_nvidia import NVidiaSwitcher
+import switcher
 
 # program name and version
 progname = 'disper'
@@ -96,7 +96,7 @@ def main():
         sys.exit(2)
 
     ### go to work
-    nv = NVidiaSwitcher()
+    nv = switcher.Switcher()
     # TODO determine displays involved
     if 'single' in options.actions:
         pass
