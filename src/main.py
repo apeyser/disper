@@ -18,7 +18,6 @@ import optparse
 
 from switcher_nvidia import NVidiaSwitcher
 
-
 # program name and version
 progname = 'disper'
 progver = '0.1'
@@ -27,9 +26,9 @@ progver = '0.1'
 def get_resolutions(sw):
     '''return an array of resolution-sets for each display connected'''
     res = []
-    for ndisp in range(sw.get_displays()):
-        logging.info('display #%d: %s'%(ndisp, sw.get_display_name(ndisp)))
-        res.append(sw.get_display_res(ndisp))
+    for disp in sw.get_displays():
+        logging.info('display '+str(disp)+': '+sw.get_display_name(disp))
+        res.append(sw.get_display_res(disp))
         if len(res[-1])==0:
             res[-1] = set(['800x600','640x480'])
             logging.warning('no resolutions found for display, falling back to default')

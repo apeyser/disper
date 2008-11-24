@@ -14,52 +14,39 @@
 # the terms and conditions of this license.
 
 import re
-import sys
 import logging
 
 import xrandr
 
-import xnet
-import minx
-import nvctrl
+import nvidia
 
 class NVidiaSwitcher:
 
-    # NV-CONTROL
-    xsock        = None
-    xconn        = None
-    xscreen      = None
-    NVCtrl       = None
-    nvctrlv      = (0,0)
-    gpucount     = 0
-
-    ngpu         = 0 # default gpu number
+    nvidia = None
+    displays = None
 
     def __init__(self):
+        self.nv = nvidia.NVidiaControl()
+        self.screen = nvidia.Screen(self.nv.xscreen)
         self.log = logging.getLogger('nVidia')
-        self.init_NV_CONTROL()
-        self.validate_GPU_count()
 
     def get_displays(self):
-        '''return the number of connected displays'''
-        displays = self.get_GPU_displays(self.ngpu)
-        return len(displays)
+        '''return an array of connected displays'''
+        if self.displays:
+            return self.displays
+
+        self.displays = self.nv.probe_displays(self.screen)
+        return self.displays
 
     def get_display_name(self, ndisp):
         '''return the name of a display'''
-        displays = self.get_GPU_displays(self.ngpu)
-        ndisp = displays[ndisp]
-        return nvctrl.get_GPU_display_name( self.xsock, self.NVCtrl.major_opcode, self.ngpu, ndisp )
+        return self.nv.get_display_name(self.screen, ndisp)
 
     def get_display_res(self, ndisp):
         '''return an array of supported resolutions for a display'''
-        displays = self.get_GPU_displays(self.ngpu)
-        ndisp = displays[ndisp]
-
         # enable display
-        nvctrl.build_GPU_modepool( self.xsock, self.NVCtrl.major_opcode, self.ngpu, ndisp )
-
-        modelines=nvctrl.get_GPU_display_modelines( self.xsock, self.NVCtrl.major_opcode, self.ngpu, ndisp )
+        self.nv.build_modepool(self.screen, ndisp)
+        modelines=self.nv.get_display_modelines(self.screen, ndisp)
         res = set()
         for m in modelines:
             r = re.search(r'::\s*"(\d+x\d+)"', m)
@@ -67,29 +54,30 @@ class NVidiaSwitcher:
             res.add(r.group(1))
         return res
 
-    def switch_clone(self, res):
+    def switch_clone(self, res, displays=None):
         '''switch to resolution and clone all displays'''
-        # enable displays
-        displays = self.get_GPU_displays(self.ngpu)
+
+        if not displays:
+            displays = self.get_displays()
 
         # set scaling modes to aspect-ratio scaled
         # this fails if it's done for all of them at once, so do it separately
         for d in displays:
-            nvctrl.set_screen_scaling( self.xsock, self.NVCtrl.major_opcode, self.xscreen, [d], 2, 3)
+            self.nv.set_scaling(self.screen, 'best fit', 'aspect scaled')
 
         # find suitable metamode, or create one if needed
         mmid = self._find_metamode_clone(res)
         if mmid < 0:
             mm = ', '.join([res+'+0+0']*len(displays))
             self.log.info('adding metamode: %s'%mm)
-            nvctrl.add_screen_metamode( self.xsock, self.NVCtrl.major_opcode, self.xscreen, mm )
+            self.nv.add_screen_metamode(self.screen, mm)
             mmid = self._find_metamode_clone(res)
 
         # enable all displays
         # this must be put _after_ metamode creation or the Xorg driver restarts
-        ret = nvctrl.set_screen_associated_displays( self.xsock, self.NVCtrl.major_opcode, self.xscreen, displays )
+        ret = self.nv.set_associated_displays(self.screen, displays)
         if not ret:
-            self.log.error('could not attach displays to screen #%d: %s'%(self.xscreen, str(displays)))
+            self.log.error('could not attach displays to screen #%d: %s'%(self.screen, str(displays)))
 
         # change to this mode using xrandr and refresh as id
         screen = xrandr.get_current_screen()
@@ -108,8 +96,8 @@ class NVidiaSwitcher:
 
     def _find_metamode_clone(self, res):
         '''find the id of an existing clone metamode for a specific resolution'''
-        displays = self.get_GPU_displays(self.ngpu)
-        metamodes = nvctrl.get_screen_metamodes( self.xsock, self.NVCtrl.major_opcode, self.xscreen )
+        displays = self.get_displays()
+        metamodes = self.nv.get_metamodes(self.screen)
         for mm in metamodes:
             r = re.match(r'\s*id=(\d+).*::\s*(.*)$', mm)
             if not r: continue
@@ -130,56 +118,5 @@ class NVidiaSwitcher:
 
         return -1
 
-
-###############################################################################
-# NV-CONTROL
-#
-
-    def validate_GPU_count(self):
-        '''count GPUs and make sure there is at least 1.
-        bail if no Nvidia GPUs are found'''
-
-        self.gpucount = 0
-        try:
-            self.gpucount = nvctrl.get_GPU_count( self.xsock, self.NVCtrl.major_opcode )
-        except Exception,e:
-            raise SystemExit( "Error counting GPU's:" + str(e) )
-        else:
-            if self.gpucount == 0:
-                raise SystemExit( "GPU count = 0" )
-
-
-    def get_GPU_displays(self, ngpu):
-        '''return an array of display numbers attached to a GPU'''
-        try:
-                displays = nvctrl.get_GPU_displays( self.xsock, self.NVCtrl.major_opcode, ngpu )
-        except Exception,e:
-            raise SystemExit( 'Error getting attached displays: ' + str(e) )
-        return displays
-
-
-    def init_NV_CONTROL(self):
-        '''connect to X and confirm NV-CONTROL. bail if X chokes, no NV-CONTROL
-        is found, or the buggy NV-CONTROL (minor 9 or 8) is found'''
-
-        try:
-            name, host, displayno, self.xscreen = xnet.get_X_display()
-            self.xsock, self.xconn = minx.XConnect()
-            self.NVCtrl = minx.XQueryExtension( self.xsock, 'NV-CONTROL' )
-        except Exception,e:
-            raise SystemExit( 'Error connecting to X or querying extensions: ' + str(e) )
-
-        if not self.NVCtrl.present:
-            self.xsock.close()
-            raise SystemExit( 'NV-CONTROL not found' )
-
-        try:
-            self.nvctrlv = nvctrl.get_NV_CONTROL_version( self.xsock,self.NVCtrl.major_opcode )
-        except Exception,e:
-            raise SystemExit( 'Error checking NV-CONTROL version: ' + str(e) )
-
-        if self.nvctrlv[1] == 8 or self.nvctrlv[1] == 9:
-            self.xsock.close()
-            raise SystemExit( 'NV-CONTROL arg swap bug. Minor version = %i' % self.nvctrlv[1] )
 
 # vim:ts=4:sw=4:expandtab:
