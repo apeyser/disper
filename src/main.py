@@ -65,7 +65,7 @@ def _resolutions_sort(a, b):
 def main():
     '''main program entry point'''
     ### option defitions
-    usage = "usage: %prog [options]"
+    usage = "usage: %prog [options] (-s|-c)"
     version = ' '.join(map(str, [progname, progver]))
     parser = optparse.OptionParser(usage, version=version)
     parser.set_defaults(resolution='auto')
