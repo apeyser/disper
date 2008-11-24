@@ -1,0 +1,53 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+# Sample debian/rules that uses debhelper.
+# GNU copyright 1997 to 1999 by Joey Hess.
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+export DH_COMPAT=4
+export DH_OPTIONS
+
+build: build-stamp
+
+build-stamp:
+	dh_testdir
+	$(MAKE) PREFIX=/usr DESTDIR=$(CURDIR)/debian/disper
+	help2man --name="on-the-fly display switcher" \
+		-N --section=1 --output=disper.1 ./src/cli.py
+	touch build-stamp
+
+clean:
+	$(MAKE) clean
+	dh_testdir
+	dh_testroot
+	rm -f build-stamp configure-stamp disper.1
+	dh_clean 
+
+install: build
+	dh_testdir
+	dh_testroot
+	dh_clean -k 
+	$(MAKE) install PREFIX=/usr DESTDIR=$(CURDIR)/debian/disper
+
+binary-arch: build install
+
+binary-indep: build install
+	dh_testdir
+	dh_testroot
+	dh_installdocs
+	dh_installman disper.1
+	dh_installchangelogs
+	dh_link
+	dh_strip
+	dh_compress
+	dh_fixperms
+	dh_pysupport
+	dh_installdeb
+	dh_shlibdeps
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+
+binary: binary-indep binary-arch
+.PHONY: build clean binary-indep binary-arch binary install configure
