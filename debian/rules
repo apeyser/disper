@@ -13,15 +13,13 @@ build: build-stamp
 build-stamp:
 	dh_testdir
 	$(MAKE) PREFIX=/usr DESTDIR=$(CURDIR)/debian/disper
-	help2man --name="on-the-fly display switcher" \
-		-N --section=1 --output=disper.1 ./src/cli.py
 	touch build-stamp
 
 clean:
 	$(MAKE) clean
 	dh_testdir
 	dh_testroot
-	rm -f build-stamp configure-stamp disper.1
+	rm -f build-stamp configure-stamp
 	dh_clean 
 
 install: build

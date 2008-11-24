@@ -23,6 +23,12 @@ install: disper
 disper: disper.in
 	sed -e "s|#PREFIX#|$(PREFIX)|" <disper.in >disper
 
+# run this after changing command-line options in src/cli.py
+# afterwards the file can be committed to the repository
+disper.1:
+	help2man --name="on-the-fly display switcher" \
+		-N --section=1 --output=disper.1 ./src/cli.py
+
 clean:
 	rm -f disper
 
