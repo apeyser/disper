@@ -4,7 +4,7 @@
 disper \- on-the-fly display switcher
 .SH SYNOPSIS
 .B cli.py
-[\fIoptions\fR] \fI(-s|-c)\fR
+[\fIoptions\fR] \fI(-l|-s|-c)\fR
 .SH OPTIONS
 .TP
 \fB\-\-version\fR
@@ -17,17 +17,24 @@ show this help message and exit
 show what's happening
 .TP
 \fB\-q\fR, \fB\-\-quiet\fR
-show what's happening
+be quiet and only show errors
 .TP
 \fB\-r\fR RESOLUTION, \fB\-\-resolution\fR=\fIRESOLUTION\fR
 set resolution, or "auto" to detect
+.TP
+\fB\-d\fR DISPLAYS, \fB\-\-displays\fR=\fIDISPLAYS\fR
+comma\-separated list of displays to operate on, or
+"auto" to detect
 .IP
 Actions:
 .IP
 Select exactly one of the following actions
 .TP
+\fB\-l\fR, \fB\-\-list\fR
+list the attached displays
+.TP
 \fB\-s\fR, \fB\-\-single\fR
 only enable the primary display
 .TP
 \fB\-c\fR, \fB\-\-clone\fR
-clone all detected displays
+clone displays

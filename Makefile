@@ -25,7 +25,7 @@ disper: disper.in
 
 # run this after changing command-line options in src/cli.py
 # afterwards the file can be committed to the repository
-disper.1:
+disper.1: src/cli.py
 	help2man --name="on-the-fly display switcher" \
 		-N --section=1 --output=disper.1 ./src/cli.py
 

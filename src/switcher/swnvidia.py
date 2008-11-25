@@ -38,6 +38,20 @@ class NVidiaSwitcher:
         self.displays = self.nv.probe_displays(self.screen)
         return self.displays
 
+    def get_primary_display(self):
+        '''return the primary display of this system'''
+        displays = self.get_displays()
+        # TODO proper primary display selection
+        # for now, the order is any digital, any vga, any tv.
+        for d in ['DFP', 'CRT', 'TV']:
+            for i in range(8):
+                disp = '%s-%1d'%(d,i)
+                if disp in displays:
+                    return disp
+        # this should be unreachable code, but be safe
+        self.error('program error, could not determine primary display')
+        return displays[0]
+
     def get_display_name(self, ndisp):
         '''return the name of a display'''
         return self.nv.get_display_name(self.screen, ndisp)

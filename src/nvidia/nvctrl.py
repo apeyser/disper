@@ -770,7 +770,7 @@ class NVidiaControl:
         '''return a display mask from an array of display numbers.'''
         mask = 0
         for d in displays:
-            mask += (1 << d)
+            mask += ( 1 << self._displaystr2num(d) )
         return mask
 
 
@@ -779,8 +779,34 @@ class NVidiaControl:
         displays = []
         for i in range(32):
             if mask & (1<<i):
-                displays.append(i)
+                displays.append(self._displaynum2str(i))
         return displays
+
+    def _displaynum2str(self, num):
+        '''return a string uniquely representing a display number'''
+        if num > 15:
+            return 'DFP-%d'%(num-16)
+        elif num > 7:
+            return 'TV-%d'%(num-7)
+        else:
+            return 'CRT-%d'%(num)
+
+    def _displaystr2num(self, st):
+        '''return a display number from a string'''
+        num = None
+        for s,n in [('DFP-',16), ('TV-',8), ('CRT-',0)]:
+            if st.startswith(s):
+                try: 
+                    curnum = int(st[len(s):])
+                    if curnum >= 0 and curnum <= 7:
+                        num = n + curnum
+                        break
+                except Exception:
+                    pass
+        if num != None:
+            return num
+        else:
+            raise ValueError('Unrecognised display name: '+st)
 
 
 # vim:ts=4:sw=4:expandtab:

@@ -23,23 +23,20 @@ progname = 'disper'
 progver = '0.1'
 
 
+def get_resolutions_display(sw, disp):
+    '''return a set of resolution for the specified display'''
+    r = sw.get_display_res(disp)
+    if len(r)==0:
+        r = set(['800x600','640x480'])
+        logging.warning('no resolutions found for display %s, falling back to default'%disp)
+    return r
+
 def get_resolutions(sw):
     '''return an array of resolution-sets for each display connected'''
     res = []
     for disp in sw.get_displays():
-        logging.info('display '+str(disp)+': '+sw.get_display_name(disp))
-        res.append(sw.get_display_res(disp))
-        if len(res[-1])==0:
-            res[-1] = set(['800x600','640x480'])
-            logging.warning('no resolutions found for display, falling back to default')
-        # log resolutions
-        if logging.getLogger().getEffectiveLevel() <= logging.INFO:
-            logres = list(res[-1])
-            logres.sort(_resolutions_sort)
-            logres.reverse()
-            logging.info(' resolutions: '+', '.join(logres))
+        res.append(get_resolutions_display(sw, disp))
     return res
-
 
 def get_common_resolutions(res):
     '''return a list of common resolutions from an array of resolution-sets
@@ -62,59 +59,96 @@ def _resolutions_sort(a, b):
     return ax*ay - bx*by
 
 
-def main():
+def do_main():
     '''main program entry point'''
     ### option defitions
-    usage = "usage: %prog [options] (-s|-c)"
+    usage = "usage: %prog [options] (-l|-s|-c)"
     version = ' '.join(map(str, [progname, progver]))
     parser = optparse.OptionParser(usage, version=version)
-    parser.set_defaults(resolution='auto')
+    parser.set_defaults(resolution='auto', displays='auto', debug=logging.WARNING)
 
     parser.add_option('-v', '--verbose', action='store_const', dest='debug', const=logging.INFO,
         help='show what\'s happening')
     parser.add_option('-q', '--quiet', action='store_const', dest='debug', const=logging.ERROR,
-        help='show what\'s happening')
+        help='be quiet and only show errors')
     parser.add_option('-r', '--resolution', dest='resolution',  
         help='set resolution, or "auto" to detect')
+    parser.add_option('-d', '--displays', dest='displays',
+        help='comma-separated list of displays to operate on, or "auto" to detect')
 
     group = optparse.OptionGroup(parser, 'Actions',
         'Select exactly one of the following actions')
+    group.add_option('-l', '--list', action='append_const', const='list', dest='actions',
+        help='list the attached displays')
     group.add_option('-s', '--single', action='append_const', const='single', dest='actions',
         help='only enable the primary display')
     group.add_option('-c', '--clone', action='append_const', const='clone', dest='actions',
-        help='clone all detected displays')
+        help='clone displays')
     parser.add_option_group(group)
 
     (options, args) = parser.parse_args()
-    logging.basicConfig(level=options.debug, format='[%(levelname)s] %(message)s')
+    logging.basicConfig(level=options.debug, format='%(message)s')
     if not options.actions: options.actions = []
     if len(options.actions) == 0:
-        logging.info('no action specified, doing nothing')
-    elif len(options.actions) > 2:
+        logging.info('no action specified')
+        # show help if no action specified
+        parser.print_help()
+        sys.exit(0)
+    elif len(options.actions) > 1:
         parser.error('conflicting actions, please specify exactly one action: '
-                     +','.join(options.actions))
+                     +', '.join(options.actions))
         sys.exit(2)
 
-    ### go to work
-    nv = switcher.Switcher()
-    # TODO determine displays involved
-    if 'single' in options.actions:
-        pass
-    # determine resolution
-    resolution = options.resolution
-    if resolution == 'auto':
-        res = get_resolutions(nv)
-        commonres = get_common_resolutions(res)
-        if len(commonres)==0:
-            logging.critical('displays share no common resolution')
-            sys.exit(1)
-        resolution = commonres[0]
-    # execute action
-    if 'clone' in options.actions:
-        nv.switch_clone(resolution)
-    if 'single' in options.actions:
-        nv.switch_single(resolution)
+    ### autodetect and apply options
+    sw = switcher.Switcher()
 
+    # determine displays involved
+    if 'single' in options.actions:
+        if options.displays == 'auto':
+            options.displays = sw.get_primary_display()
+        else:
+            logging.warning('cloning specified displays instead of selecting primary display only')
+        options.actions = ['clone']
+    if options.displays == 'auto':
+        options.displays = sw.get_displays()
+        logging.info('Auto-detected displays: '+', '.join(options.displays))
+    else:
+        options.displays = map(lambda x: x.strip(), options.displays.split(','))
+        logging.info('Using specified displays: '+', '.join(options.displays))
+
+    ### execute action
+    if 'list' in options.actions:
+        # list displays with resolutions
+        for disp in options.displays:
+            res = get_resolutions_display(sw, disp)
+            logres = list(res)
+            logres.sort(_resolutions_sort)
+            logres.reverse()
+            print 'display %s: %s'%(disp, sw.get_display_name(disp))
+            print ' resolutions: '+', '.join(logres)
+    elif 'clone' in options.actions:
+        # determine resolution
+        resolution = options.resolution
+        if resolution == 'auto':
+            res = get_resolutions(sw)
+            commonres = get_common_resolutions(res)
+            if len(commonres)==0:
+                logging.critical('displays share no common resolution')
+                sys.exit(1)
+            resolution = commonres[0]
+        # and switch
+        sw.switch_clone(resolution)
+    else:
+        logging.critical('program error, unrecognised action: '+', '.join(options.actions))
+        sys.exit(2)
+
+def main():
+    logging.basicConfig(level=logging.WARNING, format='%(message)s')
+    try:
+        do_main()
+    except Exception,e:
+        logging.error(str(e))
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
