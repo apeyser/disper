@@ -1,3 +1,11 @@
+disper (0.1.1-1) unstable; urgency=low
+
+  * Allow display selection on command-line
+  * More complete command-line options
+  * Use symbolic display names instead of numbers
+
+ -- Willem van Engen <dev-disper@willem.engen.nl>  Tue, 25 Nov 2008 14:15:47 +0100
+
 disper (0.1-1) unstable; urgency=low
 
   * Initial release
