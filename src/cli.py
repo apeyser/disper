@@ -87,7 +87,7 @@ def do_main():
     parser.add_option_group(group)
 
     (options, args) = parser.parse_args()
-    logging.basicConfig(level=options.debug, format='%(message)s')
+    logging.getLogger().setLevel(options.debug)
     if not options.actions: options.actions = []
     if len(options.actions) == 0:
         logging.info('no action specified')
@@ -106,7 +106,7 @@ def do_main():
     if 'single' in options.actions:
         if options.displays == 'auto':
             options.displays = sw.get_primary_display()
-        else:
+        elif options.displays != [sw.get_primary_display()]:
             logging.warning('cloning specified displays instead of selecting primary display only')
         options.actions = ['clone']
     if options.displays == 'auto':
