@@ -1,3 +1,10 @@
+disper (0.1.2) unstable; urgency=low
+
+  * Avoid X server crashes by more delicate display association
+  * Make display switching work at once instead of twice
+
+ -- Willem van Engen <debrepo@willem.engen.nl>  Wed, 26 Nov 2008 16:27:52 +0100
+
 disper (0.1.1-1) unstable; urgency=low
 
   * Allow display selection on command-line
