@@ -20,6 +20,7 @@
 
 _all = ['GPU', 'Screen', 'NVidiaControl' ]
 
+import re
 from nvctrl import *
 from nvctrl import NVidiaControl as NVidiaControlLowLevel
 
@@ -207,11 +208,8 @@ class NVidiaControl(NVidiaControlLowLevel):
         return filter(lambda x: x, mms.data.split('\0'))
 
     def add_screen_metamode(self, target, mm):
-        '''provide a MetaMode string as input, and returns a string containing
-        comma-separated list of "token=value" pairs as output. Currently, the
-        only output token is "id", which indicates the id that was assigned to
-        the MetaMode.
-        
+        '''provide a MetaMode string as input.
+
         All ModeLines referenced in the MetaMode must already exist for each
         display device (as returned by get_metamodes()).
         

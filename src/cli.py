@@ -31,10 +31,12 @@ def get_resolutions_display(sw, disp):
         logging.warning('no resolutions found for display %s, falling back to default'%disp)
     return r
 
-def get_resolutions(sw):
+def get_resolutions(sw, displays = []):
     '''return an array of resolution-sets for each display connected'''
+    if len(displays) == 0:
+        displays = sw.get_displays()
     res = []
-    for disp in sw.get_displays():
+    for disp in displays:
         res.append(get_resolutions_display(sw, disp))
     return res
 
@@ -111,10 +113,10 @@ def do_main():
         options.actions = ['clone']
     if options.displays == 'auto':
         options.displays = sw.get_displays()
-        logging.info('Auto-detected displays: '+', '.join(options.displays))
+        logging.info('auto-detected displays: '+', '.join(options.displays))
     else:
         options.displays = map(lambda x: x.strip(), options.displays.split(','))
-        logging.info('Using specified displays: '+', '.join(options.displays))
+        logging.info('using specified displays: '+', '.join(options.displays))
 
     ### execute action
     if 'list' in options.actions:
@@ -130,14 +132,14 @@ def do_main():
         # determine resolution
         resolution = options.resolution
         if resolution == 'auto':
-            res = get_resolutions(sw)
+            res = get_resolutions(sw, options.displays)
             commonres = get_common_resolutions(res)
             if len(commonres)==0:
                 logging.critical('displays share no common resolution')
                 sys.exit(1)
             resolution = commonres[0]
         # and switch
-        sw.switch_clone(resolution)
+        sw.switch_clone(resolution, options.displays)
     else:
         logging.critical('program error, unrecognised action: '+', '.join(options.actions))
         sys.exit(2)

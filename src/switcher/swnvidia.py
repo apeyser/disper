@@ -24,6 +24,7 @@ class NVidiaSwitcher:
 
     nvidia = None
     displays = None
+    _resolutions = None
 
     def __init__(self):
         self.nv = nvidia.NVidiaControl()
@@ -39,10 +40,10 @@ class NVidiaSwitcher:
         return self.displays
 
     def get_primary_display(self):
-        '''return the primary display of this system'''
+        '''return the primary display of this system. I'm not really sure how
+        to do this, so currently the first found flat panel display (DFP) is
+        returned, or CRT if none, or TV if neither.'''
         displays = self.get_displays()
-        # TODO proper primary display selection
-        # for now, the order is any digital, any vga, any tv.
         for d in ['DFP', 'CRT', 'TV']:
             for i in range(8):
                 disp = '%s-%1d'%(d,i)
@@ -57,24 +58,43 @@ class NVidiaSwitcher:
         return self.nv.get_display_name(self.screen, ndisp)
 
     def get_display_res(self, ndisp):
-        '''return an array of supported resolutions for a display'''
-        # Get display resolutions. The display needs to have it associated to
-        # the X screen to be able to do this. So we check that it is associated
-        # first and do so when needed. Restore associated displays afterwards.
-        newass = oldass = set(self.nv.get_screen_associated_displays(self.screen))
-        newass.add(ndisp)
-        self.nv.set_screen_associated_displays(self.screen, newass)
-        self.nv.build_modepool(self.screen, ndisp)
-        modelines=self.nv.get_display_modelines(self.screen, ndisp)
-        self.nv.set_screen_associated_displays(self.screen, oldass)
+        '''return a set of supported resolutions for a display. All displays
+        are queried on first call, subsequent calls return cached information.
+        Displays need to be associated to probe their modelines, so this method
+        temporarily changes that (and reverts to the old setup before
+        returning).'''
+        if self._resolutions:
+            if not ndisp in self._resolutions:
+                raise ValueError('Cannot detect resolutions: display %s not connected'%str(ndisp))
+            return self._resolutions[ndisp]
 
-        res = set()
-        for m in modelines:
-            r = re.search(r'::\s*"(\d+x\d+)"', m)
-            if not r: continue
-            res.add(r.group(1))
+        self._resolutions = {}
 
-        return res
+        # Get display resolutions for all displays. The display needs to have
+        # it associated to the X screen to be able to do this. So we check that
+        # it is associated first and do so when needed. Restore associated
+        # displays afterwards.
+        # Note: When twinview has not been enabled before, the X server can
+        #       *crash* when a display is associated that isn't mentioned in
+        #       any metamode line.
+        olddisps = self.nv.get_screen_associated_displays(self.screen)
+        alldisps = self.get_displays()
+        if set(olddisps) != set(alldisps):
+            self._add_metamode_clone('nvidia-auto-select', alldisps)
+        for d in alldisps:
+            self.nv.build_modepool(self.screen, d)
+            self._resolutions[d] = set()
+            for m in self.nv.get_display_modelines(self.screen, d):
+                r = re.search(r'::\s*"(\d+x\d+)"', m)
+                if not r: continue
+                self._resolutions[d].add(r.group(1))
+            self.log.info('resolutions of %s: %s'%(d, ', '.join(self._resolutions[d])))
+
+        if set(olddisps) != set(alldisps):
+            self.log.info('associating original displays: %s'%(', '.join(olddisps)))
+            self.nv.set_screen_associated_displays(self.screen, olddisps)
+
+        return self.get_display_res(ndisp)
 
     def switch_clone(self, res, displays=None):
         '''switch to resolution and clone all displays'''
@@ -87,19 +107,20 @@ class NVidiaSwitcher:
         for d in displays:
             self.nv.set_screen_scaling(self.screen, d, 'best fit', 'aspect scaled')
 
-        # find suitable metamode, or create one if needed
-        mmid = self._find_metamode_clone(res)
-        if mmid < 0:
-            mm = ', '.join([res+'+0+0']*len(displays))
-            self.log.info('adding metamode: %s'%mm)
-            self.nv.add_screen_metamode(self.screen, mm)
-            mmid = self._find_metamode_clone(res)
+        # make sure we have a suitable metamode
+        self._add_metamode_clone(res, displays)
+        self._add_metamode_clone(res, displays)
+        mmid = self._find_metamode_clone(res, displays)
 
+        '''
         # enable all displays
         # this must be put _after_ metamode creation or the Xorg driver restarts
+        self.log.info('associating displays: %s'%(', '.join(displays)))
         ret = self.nv.set_screen_associated_displays(self.screen, displays)
         if not ret:
             self.log.error('could not attach displays to screen #%d: %s'%(self.screen, str(displays)))
+        '''
+
 
         # change to this mode using xrandr and refresh as id
         screen = xrandr.get_current_screen()
@@ -110,15 +131,16 @@ class NVidiaSwitcher:
                 sizeidx = i
         if sizeidx == None:
             raise SystemExit( "Could not set display mode: resolution not found (this is a bug)" )
-        self.log.info('setting xrandr: (%d) %s / %d'%(sizeidx, res, mmid))
+        self.log.info('switching to metamode %d using XRandR: [%d] %s / %d'%(mmid, sizeidx, res, mmid))
         screen.set_size_index(sizeidx)
         screen.set_refresh_rate(mmid)
         screen.apply_config()
 
 
-    def _find_metamode_clone(self, res):
+    def _find_metamode_clone(self, res, displays = None):
         '''find the id of an existing clone metamode for a specific resolution'''
-        displays = self.get_displays()
+        if not displays:
+            displays = self.get_displays()
         metamodes = self.nv.get_metamodes(self.screen)
         for mm in metamodes:
             r = re.match(r'\s*id=(\d+).*::\s*(.*)$', mm)
@@ -128,17 +150,42 @@ class NVidiaSwitcher:
             for i,dc in enumerate(r.group(2).split(',')):
                 # Every display must have real and virtual resolution requested with an
                 # origin at (0,0) - that's clone. When metamodes contain more entries
-                # than connected monitors, require them to be disabled (NULL).
-                # XXX this assumes that currently active monitors are shown first. For
-                #     laptops this might be expected, but in general _not_ !!!
-                if i < len(displays):
-                    r = re.match(r'[^:]+:\s*'+res+'(\s+@'+res+')?\s+\+0\+0', dc.strip())
+                # than specified monitors, require them to be disabled (NULL).
+                r = re.match(r'^\s*([^:]*)\s*:\s*(.*?)\s*$', dc)
+                if not r:
+                    found = False
+                    continue
+                disp, mm = r.group(1), r.group(2)
+                if disp in displays:
+                    r = re.match('^\s*'+res+'(\s+@'+res+')?\s+\+0\+0\s*$', mm)
+                    if not r: found = False
                 else:
-                    r = re.match(r'[^:]+:\s*NULL',dc.strip())
-                if not r: found = False
+                    r = re.match('^\s*NULL\s*$', mm)
+                    if not r: found = False
+
             if found: return int(id)
 
         return -1
 
+    def _add_metamode_clone(self, res, displays):
+        '''add a metamode that clones all displays at the specified resolution.
+        Also these displays will be associated to the X screen.'''
+        # TODO error checking
+        ## There must be a metamode containing all displays when associating
+        ## displays, or the X server may crash.
+        ## To enter a MetaMode line, the displays involved must have been
+        ## associated or the nvidia driver doesn't remember display names.
+        # dummy metamode to enable association
+        mm = ', '.join(map(lambda d: '%s: nvidia-auto-select +0+0'%d, displays))
+        self.log.info('adding auto-select metamode: %s'%mm)
+        self.nv.add_screen_metamode(self.screen, mm)
+        # associate
+        self.log.info('associating displays: %s'%(', '.join(displays)))
+        self.nv.set_screen_associated_displays(self.screen, displays)
+        # now the real metamode
+        if res != 'nvidia-auto-select':
+            mm = ', '.join(map(lambda d: '%s: %s +0+0'%(d,res), displays))
+            self.log.info('adding metamode: %s'%mm)
+            self.nv.add_screen_metamode(self.screen, mm)
 
 # vim:ts=4:sw=4:expandtab:
