@@ -208,7 +208,8 @@ class NVidiaControl(NVidiaControlLowLevel):
         return filter(lambda x: x, mms.data.split('\0'))
 
     def add_screen_metamode(self, target, mm):
-        '''provide a MetaMode string as input.
+        '''provide a MetaMode string as input. return newly created MetaMode
+        on success, or -1 if it failed.
 
         All ModeLines referenced in the MetaMode must already exist for each
         display device (as returned by get_metamodes()).
@@ -220,8 +221,11 @@ class NVidiaControl(NVidiaControlLowLevel):
         comma-separated "token=value" pairs, separated from the MetaMode string
         by "::". Currently, the only valid token is "index" which indicates the
         insertion index for the MetaMode.'''
-        res = self.set_string_attribute(target, [], NV_CTRL_STRING_ADD_METAMODE, mm)
-        return res.flags
+        #res = self.set_string_attribute(target, [], NV_CTRL_STRING_ADD_METAMODE, mm)
+        res = self.string_operation(target, [], NV_CTRL_STRING_OPERATION_ADD_METAMODE, mm)
+        r = re.match('id=(\d+)', res.string)
+        if not r: return -1
+        return r.group(1)
 
     def delete_screen_metamode(self, target, mm):
         '''Deletes an existing MetaMode from the specified X Screen. The

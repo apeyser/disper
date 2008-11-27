@@ -511,7 +511,7 @@ class _NVCtrlStringOperationRequest:
             data = ''
         self.encoding = minx.encode(
             minx.XData('CARD8',1,opcode),
-            minx.XData('CARD8',1,_X_nvCtrlSetStringAttribute),
+            minx.XData('CARD8',1,_X_nvCtrlStringOperation),
             minx.XData('CARD16',1,5 + (((dlen+3)&~3) >> 2) ),
             minx.XData('CARD16',1,target_id),
             minx.XData('CARD16',1,target_type),
