@@ -4,31 +4,40 @@ import re
 import xrandr
 import nvidia
 
+
 def main():
 	nv = nvidia.NVidiaControl()
 	screen = nvidia.Screen(nv.xscreen)
 
 	displays = nv.probe_displays(screen)
 	res = "1024x768"
+	#res = detect_resolutions(nv, screen, displays)
 
-	# get resolutions for all displays
-	# displays must be associated for that
+	print 'probed displays:',', '.join(displays)
+
+	# associate displays; also needed to probe resolutions
 	nv.set_screen_associated_displays(screen, displays)
 
 	# clone all displays. 
 	metamode = ', '.join(map(lambda d: '%s: %s +0+0'%(d,res), displays))
+	print 'creating metamode:',metamode
 	nv.add_screen_metamode(screen, metamode)
 
-	# find the id of the metamode
+	# find the id of the metamode (can't get string operation to work which
+	# returns an id after creation; also don't think that add_screen_metamode
+	# would return the id if the metamode already exists)
 	metamodes = nv.get_metamodes(screen)
 	mmid = find_metamode_clone(metamodes, res, displays)
+	print 'switching to metamode:',mmid
 
 	# now use xrandr to switch
 	xrandr_switch(res, mmid)
 
 
+
 def find_metamode_clone(metamodes, res, displays):
 	'''find the id of an existing clone metamode for a specific resolution'''
+	foundid = -1
 	for mm in metamodes:
 		r = re.match(r'\s*id=(\d+).*::\s*(.*)$', mm)
 		if not r: continue
@@ -50,8 +59,11 @@ def find_metamode_clone(metamodes, res, displays):
 			else:
 				r = re.match('^\s*NULL\s*$', mm)
 				if not r: found = False
-		if found: return int(id)
-	return -1
+		if found:
+			if foundid > 0:
+				raise Exception('Multiple matching modes found')
+			foundid = int(id)
+	return foundid
 
 
 def xrandr_switch(res, mmid):
@@ -67,6 +79,34 @@ def xrandr_switch(res, mmid):
 	screen.set_size_index(sizeidx)
 	screen.set_refresh_rate(mmid)
 	screen.apply_config()
+
+
+def detect_resolutions(nv, screen, displays):
+	'''find resolutions common to all displays. displays must be associatd
+	already.'''
+	resolutions = None
+	nv.set_screen_associated_displays(screen, displays)
+	# a modeline is needed or X will crash
+	metamode = ', '.join(map(lambda d: 'nvidia-auto-select',displays))
+	nv.add_screen_metamode(screen, metamode)
+	for d in displays:
+		nv.build_modepool(screen, d)
+		curres = set()
+		for m in nv.get_display_modelines(screen, d):
+			r = re.search(r'::\s*"(\d+x\d+)"', m)
+			if not r: continue
+			curres.add(r.group(1))
+		if not resolutions:
+			resolutions = curres
+		else:
+			resolutions.intersection_update(curres)
+	# sort by width
+	resolutions = list(resolutions)
+	resolutions.sort(lambda a,b: int(a.partition('x')[0])-int(b.partition('x')[0]))
+	print 'common resolutions:',', '.join(resolutions)
+	# we want the highest common resolution
+	return resolutions[-1]
+
 
 if __name__ == "__main__":
 	main()
