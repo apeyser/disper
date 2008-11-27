@@ -225,14 +225,25 @@ class NVidiaControl(NVidiaControlLowLevel):
         res = self.string_operation(target, [], NV_CTRL_STRING_OPERATION_ADD_METAMODE, mm)
         r = re.match('id=(\d+)', res.string)
         if not r: return -1
-        return r.group(1)
+        return int(r.group(1))
 
     def delete_screen_metamode(self, target, mm):
         '''Deletes an existing MetaMode from the specified X Screen. The
         currently selected MetaMode cannot be deleted. (This also means you
         cannot delete the last MetaMode).  The MetaMode string should have the
         same syntax as the MetaMode X configuration option, as documented in
-        the NVIDIA driver README.'''
+        the NVIDIA driver README.
+
+        The argument can either be a modeline, or a mode id (integer).'''
+        if type(mm) == int:
+            # retrieve id from MetaModes
+            for mml in self.get_metamodes(target):
+                r = re.match('^.*id=%d.*::\s*(.*?)\s*$'%mm, mml)
+                if r:
+                    mm = r.group(1)
+            if type(mm) == int:
+                # not found, modeline id not found
+                return False
         res = self.set_string_attribute(target, [], NV_CTRL_STRING_DELETE_METAMODE, mm)
         return res.flags
 

@@ -82,13 +82,13 @@ def xrandr_switch(res, mmid):
 
 
 def detect_resolutions(nv, screen, displays):
-	'''find resolutions common to all displays. displays must be associatd
-	already.'''
+	'''return resolutions common to all displays.'''
 	resolutions = None
+	olddisplays = nv.get_screen_associated_displays(screen)
 	nv.set_screen_associated_displays(screen, displays)
 	# a modeline is needed or X will crash
 	metamode = ', '.join(map(lambda d: 'nvidia-auto-select',displays))
-	nv.add_screen_metamode(screen, metamode)
+	tmpid = nv.add_screen_metamode(screen, metamode)
 	for d in displays:
 		nv.build_modepool(screen, d)
 		curres = set()
@@ -104,6 +104,10 @@ def detect_resolutions(nv, screen, displays):
 	resolutions = list(resolutions)
 	resolutions.sort(lambda a,b: int(a.partition('x')[0])-int(b.partition('x')[0]))
 	print 'common resolutions:',', '.join(resolutions)
+	# revert screen association and remove temporary metamode
+	if tmpid > 0:
+		nv.delete_screen_metamode(screen, tmpid)
+	nv.set_screen_associated_displays(screen, olddisplays)
 	# we want the highest common resolution
 	return resolutions[-1]
 
