@@ -91,8 +91,7 @@ class NVidiaSwitcher:
             self.log.info('resolutions of %s: %s'%(d, ', '.join(self._resolutions[d])))
 
         if set(olddisps) != set(alldisps):
-            self.log.info('associating original displays: %s'%(', '.join(olddisps)))
-            self.nv.set_screen_associated_displays(self.screen, olddisps)
+            self._set_associated_displays(olddisps)
 
         return self.get_display_res(ndisp)
 
@@ -109,18 +108,7 @@ class NVidiaSwitcher:
 
         # make sure we have a suitable metamode
         self._add_metamode_clone(res, displays)
-        self._add_metamode_clone(res, displays)
         mmid = self._find_metamode_clone(res, displays)
-
-        '''
-        # enable all displays
-        # this must be put _after_ metamode creation or the Xorg driver restarts
-        self.log.info('associating displays: %s'%(', '.join(displays)))
-        ret = self.nv.set_screen_associated_displays(self.screen, displays)
-        if not ret:
-            self.log.error('could not attach displays to screen #%d: %s'%(self.screen, str(displays)))
-        '''
-
 
         # change to this mode using xrandr and refresh as id
         screen = xrandr.get_current_screen()
@@ -129,8 +117,8 @@ class NVidiaSwitcher:
         for i,s in enumerate(screen.get_available_sizes()):
             if int(s.width) == int(w) and int(s.height) == int(h):
                 sizeidx = i
-        if sizeidx == None:
-            raise SystemExit( "Could not set display mode: resolution not found (this is a bug)" )
+        if sizeidx == None or sizeidx == -1:
+            raise Exception( 'could not set display mode: resolution not found (this is a bug)' )
         self.log.info('switching to metamode %d using XRandR: [%d] %s / %d'%(mmid, sizeidx, res, mmid))
         screen.set_size_index(sizeidx)
         screen.set_refresh_rate(mmid)
@@ -180,12 +168,18 @@ class NVidiaSwitcher:
         self.log.info('adding auto-select metamode: %s'%mm)
         self.nv.add_screen_metamode(self.screen, mm)
         # associate
-        self.log.info('associating displays: %s'%(', '.join(displays)))
-        self.nv.set_screen_associated_displays(self.screen, displays)
+        self._set_associated_displays(displays)
         # now the real metamode
         if res != 'nvidia-auto-select':
             mm = ', '.join(map(lambda d: '%s: %s +0+0'%(d,res), displays))
             self.log.info('adding metamode: %s'%mm)
             self.nv.add_screen_metamode(self.screen, mm)
+
+    def _set_associated_displays(self, displays):
+        '''set the displays associated to the current X screen.'''
+        # associate displays
+        self.log.info('associating displays: %s'%(', '.join(displays)))
+        return self.nv.set_screen_associated_displays(self.screen, displays)
+
 
 # vim:ts=4:sw=4:expandtab:
