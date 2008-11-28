@@ -31,4 +31,8 @@ disper.1: src/cli.py
 
 clean:
 	rm -f disper
+	find . -name *.pyc -exec rm -f {} \;
+	find . -name *.pyo -exec rm -f {} \;
+	find . -name core -exec rm -f {} \;
+	find . -name *.swp -exec rm -f {} \;
 
