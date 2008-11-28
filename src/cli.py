@@ -146,8 +146,10 @@ def do_main():
 
 def main():
     logging.basicConfig(level=logging.WARNING, format='%(message)s')
+
+    do_main()
     try:
-        do_main()
+        pass
     except Exception,e:
         logging.error(str(e))
         sys.exit(1)

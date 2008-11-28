@@ -238,7 +238,7 @@ class NVidiaControl(NVidiaControlLowLevel):
         if type(mm) == int:
             # retrieve id from MetaModes
             for mml in self.get_metamodes(target):
-                r = re.match('^.*id=%d.*::\s*(.*?)\s*$'%mm, mml)
+                r = re.match('^.*id='+str(mm)+'.*::\s*(.*?)\s*$', mml)
                 if r:
                     mm = r.group(1)
             if type(mm) == int:

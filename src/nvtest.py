@@ -9,17 +9,23 @@ def main():
 	nv = nvidia.NVidiaControl()
 	screen = nvidia.Screen(nv.xscreen)
 
-	displays = nv.probe_displays(screen)
+	newdisplays = nv.probe_displays(screen)
 	res = "1024x768"
-	#res = detect_resolutions(nv, screen, displays)
+	#res = detect_resolutions(nv, screen, newdisplays)
 
-	print 'probed displays:',', '.join(displays)
+	print 'probed displays:',', '.join(newdisplays)
+	print 'probed resolution:',res
 
-	# associate displays; also needed to probe resolutions
-	nv.set_screen_associated_displays(screen, displays)
+	# associate displays; associate both the original and the new
+	# displays so that we can switch to the new mode and then delete
+	# the old one when required; all displays mentioned in the metamode
+	# must be associated for cleanup_metamodes() to work.
+	olddisplays = nv.get_screen_associated_displays(screen)
+	assocdisplays = set(newdisplays).union(set(olddisplays))
+	nv.set_screen_associated_displays(screen, assocdisplays)
 
 	# clone all displays. 
-	metamode = ', '.join(map(lambda d: '%s: %s +0+0'%(d,res), displays))
+	metamode = ', '.join(map(lambda d: '%s: %s +0+0'%(d,res), newdisplays))
 	print 'creating metamode:',metamode
 	nv.add_screen_metamode(screen, metamode)
 
@@ -27,12 +33,16 @@ def main():
 	# returns an id after creation; also don't think that add_screen_metamode
 	# would return the id if the metamode already exists)
 	metamodes = nv.get_metamodes(screen)
-	mmid = find_metamode_clone(metamodes, res, displays)
+	mmid = find_metamode_clone(metamodes, res, newdisplays)
 	print 'switching to metamode:',mmid
 
 	# now use xrandr to switch
 	xrandr_switch(res, mmid)
 
+	# cleanup incompatible metamodes
+	cleanup_metamodes(nv, screen, newdisplays)
+	# and dissociate old screen
+	nv.set_screen_associated_displays(screen, newdisplays)
 
 
 def find_metamode_clone(metamodes, res, displays):
@@ -85,6 +95,7 @@ def detect_resolutions(nv, screen, displays):
 	'''return resolutions common to all displays.'''
 	resolutions = None
 	olddisplays = nv.get_screen_associated_displays(screen)
+	assocdisplays = set(olddisplays).union(set(displays))
 	nv.set_screen_associated_displays(screen, displays)
 	# a modeline is needed or X will crash
 	metamode = ', '.join(map(lambda d: 'nvidia-auto-select',displays))
@@ -110,6 +121,23 @@ def detect_resolutions(nv, screen, displays):
 	nv.set_screen_associated_displays(screen, olddisplays)
 	# we want the highest common resolution
 	return resolutions[-1]
+
+
+def cleanup_metamodes(nv, screen, displays):
+	'''cleanup metamodes referencing displays not mentioned'''
+	metamodes = nv.get_metamodes(screen)
+	for mm in metamodes:
+		r = re.match(r'\s*id=(\d+).*::\s*(.*)$', mm)
+		if not r: continue
+		id, line = int(r.group(1)), r.group(2)
+		for dc in line.split(','):
+			r = re.match(r'^\s*([^:]*)\s*:\s*(.*?)\s*$', dc)
+			if not r: continue
+			disp, mm = r.group(1), r.group(2)
+			if disp not in displays and mm != 'NULL':
+				print 'deleting incompatible modeline %d: %s'%(id,line)
+				res = nv.delete_screen_metamode(screen, line)
+				if not res: print ' - failed'
 
 
 if __name__ == "__main__":
