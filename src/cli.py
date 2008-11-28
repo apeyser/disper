@@ -20,7 +20,7 @@ import switcher
 
 # program name and version
 progname = 'disper'
-progver = '0.1'
+progver = '0.1.3'
 
 
 def get_resolutions_display(sw, disp):
