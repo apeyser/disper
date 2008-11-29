@@ -23,6 +23,7 @@ _all = ['GPU', 'Screen', 'NVidiaControl' ]
 import re
 from nvctrl import *
 from nvctrl import NVidiaControl as NVidiaControlLowLevel
+from metamodes import *
 
 __BUS_TYPES = ['AGP', 'PCI', 'PCI Express', 'Integrated']
 __OS_TYPES = ['Linux', 'FreeBSD', 'SunOS']
@@ -99,6 +100,7 @@ class NVidiaControl(NVidiaControlLowLevel):
         "token=value" pairs, separated from the ModeLine string by "::". This
         "token=value" syntax is the same as that used in TODO'''
         dm = self.query_string_attribute( target, [], NV_CTRL_STRING_CURRENT_MODELINE)
+        if dm.string.endswith('\0'): dm.string = dm.string[:-1]
         return dm.string
 
     def GVO_supported(target):
@@ -198,6 +200,19 @@ class NVidiaControl(NVidiaControlLowLevel):
         mls = self.query_binary_data(target, [display], NV_CTRL_BINARY_DATA_MODELINES)
         return filter(lambda x: x, mls.data.split('\0'))
 
+    def get_current_metamode(self, target):
+        '''returns the metamode currently being used by the specified X
+        screen. The MetaMode string has the same syntax as the MetaMode
+        X configuration option, as documented in the NVIDIA driver README.
+
+        The returned string may be prepended with a comma-separated list of
+        "token=value" pairs, separated from the MetaMode string by "::".
+        This "token=value" syntax is the same as that used in
+        get_metamodes().'''
+        mm = self.query_string_attribute(target, [], NV_CTRL_STRING_CURRENT_METAMODE)
+        if mm.string.endswith('\0'): mm.string = mm.string[:-1]
+        return MetaMode(mm.string)
+
     def get_metamodes(self, target):
         '''return an X screen's supported MetaModes as an array of MetaMode
         strings. The attribute must be queried through a Display().
@@ -205,7 +220,7 @@ class NVidiaControl(NVidiaControlLowLevel):
         of token=value paris, separated from the  MetaMode string with
         "::".'''
         mms = self.query_binary_data(target, [], NV_CTRL_BINARY_DATA_METAMODES)
-        return filter(lambda x: x, mms.data.split('\0'))
+        return MetaModeList(filter(lambda x: x, mms.data.split('\0')))
 
     def add_screen_metamode(self, target, mm):
         '''provide a MetaMode string as input. return newly created MetaMode
@@ -222,7 +237,7 @@ class NVidiaControl(NVidiaControlLowLevel):
         by "::". Currently, the only valid token is "index" which indicates the
         insertion index for the MetaMode.'''
         #res = self.set_string_attribute(target, [], NV_CTRL_STRING_ADD_METAMODE, mm)
-        res = self.string_operation(target, [], NV_CTRL_STRING_OPERATION_ADD_METAMODE, mm)
+        res = self.string_operation(target, [], NV_CTRL_STRING_OPERATION_ADD_METAMODE, str(mm))
         r = re.match('id=(\d+)', res.string)
         if not r: return -1
         return int(r.group(1))
@@ -234,14 +249,11 @@ class NVidiaControl(NVidiaControlLowLevel):
         same syntax as the MetaMode X configuration option, as documented in
         the NVIDIA driver README.
 
-        The argument can either be a modeline, or a mode id (integer).'''
+        The argument can either be a metamode, MetaMode, or a mode id (integer).'''
         if type(mm) == int:
             # retrieve id from MetaModes
-            for mml in self.get_metamodes(target):
-                r = re.match('^.*id='+str(mm)+'.*::\s*(.*?)\s*$', mml)
-                if r:
-                    mm = r.group(1)
-            if type(mm) == int:
+            mm = self.get_metamodes(target).get_by_id(mm)
+            if not mm:
                 # not found, modeline id not found
                 return False
         res = self.set_string_attribute(target, [], NV_CTRL_STRING_DELETE_METAMODE, mm)

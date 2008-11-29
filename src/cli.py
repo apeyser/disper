@@ -64,10 +64,12 @@ def _resolutions_sort(a, b):
 def do_main():
     '''main program entry point'''
     ### option defitions
-    usage = "usage: %prog [options] (-l|-s|-c)"
+    usage = "usage: %prog [options] (-l|-s|-c|-p|-i)"
     version = ' '.join(map(str, [progname, progver]))
     parser = optparse.OptionParser(usage, version=version)
-    parser.set_defaults(resolution='auto', displays='auto', debug=logging.WARNING)
+    # use no defaults because it makes it impossible to detect if an option was
+    # set explicitly or not
+    #parser.set_defaults(resolution='auto', displays='auto', debug=logging.WARNING)
 
     parser.add_option('-v', '--verbose', action='store_const', dest='debug', const=logging.INFO,
         help='show what\'s happening')
@@ -86,10 +88,16 @@ def do_main():
         help='only enable the primary display')
     group.add_option('-c', '--clone', action='append_const', const='clone', dest='actions',
         help='clone displays')
+    #group.add_option('-e', '--extend', action='append_const', const='extend', dest='actions',
+    #    help='extend displays')
+    group.add_option('-p', '--export', action='append_const', const='export', dest='actions',
+        help='export current settings to standard output')
+    group.add_option('-i', '--import', action='append_const', const='import', dest='actions',
+        help='import current settings from standard input')
     parser.add_option_group(group)
 
     (options, args) = parser.parse_args()
-    logging.getLogger().setLevel(options.debug)
+    # need exactly one action
     if not options.actions: options.actions = []
     if len(options.actions) == 0:
         logging.info('no action specified')
@@ -100,6 +108,18 @@ def do_main():
         parser.error('conflicting actions, please specify exactly one action: '
                      +', '.join(options.actions))
         sys.exit(2)
+
+    if 'import' in options.actions or 'export' in options.actions:
+        if options.resolution:
+            logging.warning('specified resolution ignored for %s'%options.actions[0])
+        if options.displays:
+            logging.warning('specified displays ignored for %s'%options.actions[0])
+
+    # apply defaults here to be able to detect if they were set explicitly or not
+    if not options.resolution: options.resolution = "auto"
+    if not options.displays: options.displays = "auto"
+    if not options.debug: options.debug = logging.WARNING
+    logging.getLogger().setLevel(options.debug)
 
     ### autodetect and apply options
     sw = switcher.Switcher()
@@ -140,6 +160,15 @@ def do_main():
             resolution = commonres[0]
         # and switch
         sw.switch_clone(resolution, options.displays)
+    elif 'extend' in options.actions:
+        # TODO
+        # determine resolutions
+        # and switch
+        pass
+    elif 'export' in options.actions:
+        print sw.export_config()
+    elif 'import' in options.actions:
+        sw.import_config('\n'.join(sys.stdin))
     else:
         logging.critical('program error, unrecognised action: '+', '.join(options.actions))
         sys.exit(2)
