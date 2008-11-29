@@ -35,7 +35,9 @@ class MetaModeDisplay:
         self.display, dmm = r.group(1), r.group(2)
         if dmm == 'NULL': return
         dmmparts = dmm.split()
-        self.physical = map(int, dmmparts.pop(0).split('x'))
+        self.physical = dmmparts.pop(0)
+        try: self.physical = map(int, self.physical.split('x'))
+        except: pass
         if len(dmmparts) > 0 and dmmparts[0][0]=='@':
             self.virtual = dmmparts.pop(0)
             self.virtual = map(int, self.virtual[1:].split('x'))
@@ -112,7 +114,9 @@ class MetaMode:
                 self.id = int(self.options['id'])
         # parse display settings
         for disp in line.split(','):
-            self.metamodes.append(MetaModeDisplay(disp))
+            mode = MetaModeDisplay(disp)
+            if mode.physical:
+                self.metamodes.append(mode)
 
     def __str__(self):
         s = ''
@@ -128,10 +132,13 @@ class MetaMode:
         elif type(other) == str:
             return self == MetaMode(other)
         else:
-            #return self.options == other.options and self.metamodes == other.metamodes
-            if len(self.metamodes) != len(other.metamodes): return False
-            for m in self.metamodes:
-                if not m in other.metamodes: return False
+            # Only compare metamodes, options don't matter. Displays that
+            # have NULL (for which x.physical isn't defined) don't count.
+            displaysS = filter(lambda x: x.physical, self.metamodes)
+            displaysO = filter(lambda x: x.physical, other.metamodes)
+            if len(displaysS) != len(displaysO): return False
+            for m in displaysS:
+                if not m in displaysO: return False
             return True
 
     def __ne__(self, other):
@@ -139,6 +146,24 @@ class MetaMode:
 
     def __nonzero__(self):
         return len(self.metamodes)>0
+
+    def bounding_size(self):
+        '''return the size of the total virtual screen as (w,h)'''
+        cmin = cmax = None
+        for d in self.metamodes:
+            size = d.physical
+            if d.virtual: size = d.virtual
+            dmin = d.position
+            dmax = [d.position[0]+size[0], d.position[1]+size[1]]
+            if not cmin:
+                cmin = dmin
+                cmax = dmax
+                continue
+            cmin[0] = min(cmin[0], dmin[0])
+            cmin[1] = min(cmin[1], dmin[1])
+            cmax[0] = max(cmax[0], dmax[0])
+            cmax[1] = max(cmax[1], dmax[1])
+        return (cmax[0]-cmin[0], cmax[1]-cmin[1])
 
 
 class MetaModeList(list):
@@ -199,6 +224,20 @@ if __name__ == '__main__':
                 ' DFP-2   :    123x321    @567x765  +640+0  ,  DFP-9 :    640x480    @640x480  +640+0  ']:
         if not mms.find(mm) or mms.find(mm).id != 63:
             print 'ERROR: find variation by str failed: %s' % mm
+
+    # test bounding box sizes
+    m = MetaMode('DFP-0: 800x600 +0+0, CRT-0: 800x600 +0+0')
+    if m.bounding_size() != (800, 600):
+        print 'ERROR: bounding box size: %s'%m
+    m = MetaMode('DFP-0: 800x600 @1000x800 +0+0, CRT-0: 800x600 +0+0')
+    if m.bounding_size() != (1000, 800):
+        print 'ERROR: bounding box size: %s'%m
+    m = MetaMode('DFP-0: 800x600 +0+0, CRT-0: 800x600 +900+0')
+    if m.bounding_size() != (1700, 600):
+        print 'ERROR: bounding box size: %s'%m
+    m = MetaMode('DFP-0: 800x600 +0-300, CRT-0: 800x600 +0+0')
+    if m.bounding_size() != (800, 900):
+        print 'ERROR: bounding box size: %s'%m
 
     print 'tests finished.'
 

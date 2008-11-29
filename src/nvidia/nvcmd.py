@@ -252,10 +252,15 @@ class NVidiaControl(NVidiaControlLowLevel):
         The argument can either be a metamode, MetaMode, or a mode id (integer).'''
         if type(mm) == int:
             # retrieve id from MetaModes
-            mm = self.get_metamodes(target).get_by_id(mm)
+            mm = self.get_metamodes(target).find(mm)
             if not mm:
                 # not found, modeline id not found
                 return False
+            mm = mm.src
+        elif isinstance(mm, MetaMode):
+            # get original string from metamode
+            mm = mm.src
+        mm = re.sub(r'^.*::\s*', r'', mm)
         res = self.set_string_attribute(target, [], NV_CTRL_STRING_DELETE_METAMODE, mm)
         return res.flags
 

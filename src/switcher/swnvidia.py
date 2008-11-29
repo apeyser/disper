@@ -134,6 +134,13 @@ class NVidiaSwitcher:
 
     def _switch(self, mmline, displays):
         '''switch to the specified metamode'''
+
+        # make sure requested displays are connected (or metamode can't be created)
+        unconndisplays = set(displays).difference(self.get_displays())
+        if len(unconndisplays) > 0:
+            raise Exception('unconnected displays referenced, please connect: ' + \
+                ', '.join(unconndisplays))
+
         # set scaling modes to aspect-ratio scaled
         # this fails if it's done for all of them at once, so do it separately
         for d in displays:
@@ -145,7 +152,9 @@ class NVidiaSwitcher:
         if mm:
             mmid = mm.id
         else:
-            mmid = self._add_metamode(res, mmline)
+            mmid = self._add_metamode(mmline)
+            if mmid < 0:
+                raise Exception('could not find nor create MetaMode: %s'%mmline)
 
         # change to this mode using xrandr and refresh as id
         self._xrandr_switch(mmid)
@@ -156,10 +165,9 @@ class NVidiaSwitcher:
         self._set_associated_displays(displays)
 
 
-    def _add_metamode(self, res, mm):
-        '''add a metamode that clones all displays at the specified resolution.
-        Also these displays will be associated to the X screen. Returns id of
-        newly created metamode, or -1 if it already existed.'''
+    def _add_metamode(self,  mm):
+        '''add a metamode. Returns id of newly created metamode, or -1 if it
+        already existed.'''
         ## To enter a MetaMode line, the displays involved must have been
         ## associated or the nvidia driver doesn't remember display names.
         self.log.info('adding metamode: %s'%mm)
@@ -221,14 +229,23 @@ class NVidiaSwitcher:
             self._set_associated_displays(olddisplays)
 
 
-    def _xrandr_switch(self, mmid):
-        '''switch to the specified MetaMode id'''
+    def _xrandr_switch(self, mmid, virtualres=None):
+        '''switch to the specified MetaMode id. Also the virtual resolution is
+        needed; this will be retrieved when omitted.
+
+        The virtual resolution is needed when a MetaMode is added and removed.
+        I suspect that the XRandR refresh rates are not removed propely by the
+        nVidia driver.'''
+        if not virtualres:
+            mm = self.nv.get_metamodes(self.screen).find(mmid)
+            virtualres = mm.bounding_size()
         screen = xrandr.get_current_screen()
         sizeidx = -1
         for i,s in enumerate(screen.get_available_sizes()):
+            if s.width != virtualres[0] or s.height != virtualres[1]: continue
             if mmid in screen.get_available_rates_for_size_index(i):
-                sizeidx = i
                 res = '%dx%d' % ( s.width, s.height )
+                sizeidx = i
                 break
         if sizeidx < 0:
             raise Exception( 'could not switch to metamode %d: resolution not found' % mmid )
@@ -249,9 +266,10 @@ class NVidiaSwitcher:
         metamodes = self.nv.get_metamodes(self.screen)
         for mm in metamodes:
             for d in mm.metamodes:
-                if d.display not in displays:
+                if d.display not in displays and d.physical:
                     self.log.info('deleting dangling metamode %d: %s'%(mm.id,mm))
-                    self.nv.delete_screen_metamode(self.screen, mm)
+                    r = self.nv.delete_screen_metamode(self.screen, mm)
+                    if not r: self.log.warning('deletion of dangling metamode %d failed'%mm.id)
                     break
 
 
