@@ -16,6 +16,22 @@
 import re
 
 
+def res2array(res):
+    '''return [w,h] from a resolution that is specified either as a string or
+    as an array itself.'''
+    if type(res)==str:
+        c = res.split('x')
+        try:
+            if len(c) != 2: raise ValueError
+            return map(int, c)
+        except ValueError:
+            raise Exception('malformed resolution: %s'%res)
+    elif type(res)==tuple or type(res)==list:
+        return res
+    else:
+        raise Exception('resolution has wrong type: %s'%str(res))
+
+
 class MetaModeDisplay:
     '''Display part of a MetaMode'''
 
@@ -36,7 +52,7 @@ class MetaModeDisplay:
         if dmm == 'NULL': return
         dmmparts = dmm.split()
         self.physical = dmmparts.pop(0)
-        try: self.physical = map(int, self.physical.split('x'))
+        try: self.physical = res2array(self.physical)
         except: pass
         if len(dmmparts) > 0 and dmmparts[0][0]=='@':
             self.virtual = dmmparts.pop(0)
@@ -58,7 +74,7 @@ class MetaModeDisplay:
         elif not self.physical:
             s += 'NULL'
         else:
-            s += str(self.display)
+            s += str(self.physical)
 
         if self.virtual:
             s += ' @%dx%d'%(self.virtual[0],self.virtual[1])
@@ -149,6 +165,12 @@ class MetaMode:
 
     def bounding_size(self):
         '''return the size of the total virtual screen as (w,h)'''
+        x,y,w,h = self.bounding_box()
+        return w,h
+
+    def bounding_box(self):
+        '''return the bounding box coordinates of the total virtual screen
+        as (x,y,w,h)'''
         cmin = cmax = None
         for d in self.metamodes:
             size = d.physical
@@ -159,11 +181,9 @@ class MetaMode:
                 cmin = dmin
                 cmax = dmax
                 continue
-            cmin[0] = min(cmin[0], dmin[0])
-            cmin[1] = min(cmin[1], dmin[1])
-            cmax[0] = max(cmax[0], dmax[0])
-            cmax[1] = max(cmax[1], dmax[1])
-        return (cmax[0]-cmin[0], cmax[1]-cmin[1])
+            cmin = ( min(cmin[0], dmin[0]), min(cmin[1], dmin[1]) )
+            cmax = ( max(cmax[0], dmax[0]), max(cmax[1], dmax[1]) )
+        return cmin[0], cmin[1], cmax[0]-cmin[0], cmax[1]-cmin[1]
 
 
 class MetaModeList(list):
@@ -180,6 +200,66 @@ class MetaModeList(list):
         for i in self:
             if i == el:
                 return i
+
+
+def metamode_clone(displays, physical, virtual=None):
+    '''return a MetaMode that clones the specified displays; physical is the 
+    physical resolution specified as [w,h] or "WxH"; virtual is the virtual
+    resolution, but can be omitted.'''
+    try:
+        physical = res2array(physical)
+        physical = '%dx%d'%(physical[0],physical[1])
+    except: pass
+    if virtual:
+        virtual = res2array(virtual)
+        virtual = ' @%dx%d'%(virtual[0],virtual[1])
+    else:
+        virtual = ''
+    mmline = ', '.join(map(lambda d: '%s: %s%s +0+0'%(d,physical,virtual), displays))
+    return MetaMode(mmline)
+
+
+def metamode_add_extend(metamode, direction, display, physical, virtual=None):
+    '''add a display configuration to the supplied metamode; physical and
+    virtual (optional) are resolutions specified as [w,h] or "WxH"; direction
+    is either 'left'/'right'/'top'/'bottom', and metamode is an existing
+    metamode, or None to create a new one.
+
+    Displays are placed along the virtual screen as defined by the displays
+    already in metamode. No intelligent packing is performed to minimise
+    dead areas. I suggest to pack only in one direction (either horizontal
+    or vertical, not both). Dead areas will arise when resolutions differ,
+    unless the same virtual resolution is specified for each.
+
+    Note that nvidia-auto-select is not allowed as resolution here.'''
+    if physical != 'NULL':
+        physical = size = res2array(physical)
+        physical = '%dx%d'%(physical[0],physical[1])
+    if virtual:
+        virtual = size = res2array(virtual)
+        virtual = ' @%dx%d'%(virtual[0],virtual[1])
+    else:
+        virtual = ''
+    if not metamode:
+        return MetaMode('%s: %s%s +0+0'%(display,physical,virtual))
+    x,y,w,h = metamode.bounding_box()
+    if physical != 'NULL':
+        offset = 0,0
+        if direction == 'left':
+            offset = x - size[0], 0
+        elif direction == 'right':
+            offset = x+w, 0
+        elif direction == 'top':
+            offset = 0, y - size[1]
+        elif direction == 'bottom':
+            offset = 0, y+h
+        else:
+            raise Exception('unknown extension direction for metamode: %s'%direction)
+        mmdisp = MetaModeDisplay('%s: %s%s %+d%+d'%(display,physical,virtual,offset[0],offset[1]))
+    else:
+        mmdisp = MetaModeDisplay('%s: NULL'%(display))
+    metamode.metamodes.append(mmdisp)
+    return metamode
 
 
 # a little testing
@@ -238,6 +318,22 @@ if __name__ == '__main__':
     m = MetaMode('DFP-0: 800x600 +0-300, CRT-0: 800x600 +0+0')
     if m.bounding_size() != (800, 900):
         print 'ERROR: bounding box size: %s'%m
+
+    # test metamode creation stuff
+    m1 = metamode_clone(['DFP-0','DFP-1','TV-2'], '800x600')
+    m2 = MetaMode('DFP-0: 800x600 +0+0, DFP-1: 800x600 +0+0, TV-2: 800x600 +0+0')
+    if m1 != m2:
+        print 'ERROR: metamode_clone: %s'%str(m2)
+    for dir,mmline in [
+            ('right', 'CRT-0: 800x600 +0+0, DFP-0: 200x300 +800+000, TV-0: 640x480 +1000+000'),
+            ('left',  'CRT-0: 800x600 +0+0, DFP-0: 200x300 -200+000, TV-0: 640x480  -840+000'),
+            ('top',   'CRT-0: 800x600 +0+0, DFP-0: 200x300   +0-300, TV-0: 640x480    +0-780'),
+            ('bottom','CRT-0: 800x600 +0+0, DFP-0: 200x300   +0+600, TV-0: 640x480    +0+900') ]:
+        m = metamode_add_extend(None, dir, 'CRT-0', [800,600])
+        m = metamode_add_extend(m, dir, 'DFP-0', [200,300])
+        m = metamode_add_extend(m, dir, 'TV-0', [640,480])
+        if m != MetaMode(mmline):
+            print 'ERROR: metamode_extend %s: %s'%(dir,str(m))
 
     print 'tests finished.'
 

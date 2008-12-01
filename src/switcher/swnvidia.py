@@ -95,8 +95,8 @@ class NVidiaSwitcher:
         '''switch to resolution and clone all displays'''
         if not displays:
             displays = self.get_displays()
-        mmline = ', '.join(map(lambda d: '%s: %s +0+0'%(d,res), displays))
-        return self._switch(mmline, displays)
+        mm = nvidia.metamode_clone(displays, res)
+        return self._switch(mm, displays)
 
 
     def import_config(self, cfg):
@@ -180,8 +180,8 @@ class NVidiaSwitcher:
         already existed'''
         ## There must be a metamode containing all displays when associating
         ## displays, or the X server may crash.
-        mm = ', '.join(map(lambda d: '%s: nvidia-auto-select'%d, displays))
-        self.log.info('adding auto-select metamode: %s'%mm)
+        mm = nvidia.metamode_clone(displays, 'nvidia-auto-select')
+        self.log.info('adding auto-select metamode: %s'%str(mm))
         return self.nv.add_screen_metamode(self.screen, mm)
 
 

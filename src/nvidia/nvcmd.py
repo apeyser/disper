@@ -18,7 +18,7 @@
 # By using, editing and/or distributing this software you agree to
 # the terms and conditions of this license.
 
-_all = ['GPU', 'Screen', 'NVidiaControl' ]
+_all = ['GPU', 'Screen', 'NVidiaControl', 'metamode_clone', 'metamode_add_extend' ]
 
 import re
 from nvctrl import *
