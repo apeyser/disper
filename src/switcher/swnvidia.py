@@ -39,6 +39,10 @@ class NVidiaSwitcher:
             return self.displays
 
         self.displays = self.nv.probe_displays(self.screen)
+        # always put primary display in front
+        if self.get_primary_display() in self.displays:
+            self.displays = [self.get_primary_display()] + \
+                filter(lambda x: x!=self.get_primary_display(), self.displays)
 
         return self.displays
 
@@ -91,11 +95,20 @@ class NVidiaSwitcher:
         return resolutions
 
 
-    def switch_clone(self, res, displays=None):
+    def switch_clone(self, displays, res):
         '''switch to resolution and clone all displays'''
-        if not displays:
-            displays = self.get_displays()
         mm = nvidia.metamode_clone(displays, res)
+        return self._switch(mm, displays)
+
+
+    def switch_extend(self, displays, direction, ress):
+        '''extend desktop across all displays. displays is a list of display
+        names, direction one of 'left'/'right'/'bottom'/'top', and ress an
+        array of resolutions, one for each display.'''
+        mm = None
+        for i in range(len(displays)):
+            disp,res = displays[i], ress[i]
+            mm = nvidia.metamode_add_extend(mm, direction, disp, res)
         return self._switch(mm, displays)
 
 
@@ -136,7 +149,7 @@ class NVidiaSwitcher:
         '''switch to the specified metamode'''
 
         # make sure requested displays are connected (or metamode can't be created)
-        unconndisplays = set(displays).difference(self.get_displays())
+        unconndisplays = filter(lambda x: x not in self.get_displays(), displays)
         if len(unconndisplays) > 0:
             raise Exception('unconnected displays referenced, please connect: ' + \
                 ', '.join(unconndisplays))
@@ -215,7 +228,7 @@ class NVidiaSwitcher:
 
     def _pop_display_association(self, dorestore = True):
         '''restore the previous display association from an earlier
-        _push_display_association() call. If doresture is False, only the old
+        _push_display_association() call. If dorestore is False, only the old
         values will be popped and the display will not be restored, which is
         useful when the association is overridden afterwards.'''
         if len(self._display_associations) == 0:

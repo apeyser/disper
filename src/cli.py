@@ -64,7 +64,7 @@ def _resolutions_sort(a, b):
 def do_main():
     '''main program entry point'''
     ### option defitions
-    usage = "usage: %prog [options] (-l|-s|-c|-p|-i)"
+    usage = "usage: %prog [options] (-l|-s|-c|-e|-p|-i)"
     version = ' '.join(map(str, [progname, progver]))
     parser = optparse.OptionParser(usage, version=version)
     # use no defaults because it makes it impossible to detect if an option was
@@ -76,9 +76,13 @@ def do_main():
     parser.add_option('-q', '--quiet', action='store_const', dest='debug', const=logging.ERROR,
         help='be quiet and only show errors')
     parser.add_option('-r', '--resolution', dest='resolution',  
-        help='set resolution, or "auto" to detect')
+        help='set resolution, e.g. "800x600", or "auto" to detect the highest common '+
+             'resolution. For extend, "max" can be specified to use the maximum '+
+             'for each display device.')
     parser.add_option('-d', '--displays', dest='displays',
         help='comma-separated list of displays to operate on, or "auto" to detect')
+    parser.add_option('-t', '--direction', dest='direction',
+        help='where to extend displays: "left", "right", "top", or "bottom"')
 
     group = optparse.OptionGroup(parser, 'Actions',
         'Select exactly one of the following actions')
@@ -88,8 +92,8 @@ def do_main():
         help='only enable the primary display')
     group.add_option('-c', '--clone', action='append_const', const='clone', dest='actions',
         help='clone displays')
-    #group.add_option('-e', '--extend', action='append_const', const='extend', dest='actions',
-    #    help='extend displays')
+    group.add_option('-e', '--extend', action='append_const', const='extend', dest='actions',
+        help='extend displays')
     group.add_option('-p', '--export', action='append_const', const='export', dest='actions',
         help='export current settings to standard output')
     group.add_option('-i', '--import', action='append_const', const='import', dest='actions',
@@ -116,6 +120,7 @@ def do_main():
             logging.warning('specified displays ignored for %s'%options.actions[0])
 
     # apply defaults here to be able to detect if they were set explicitly or not
+    if not options.direction: options.direction = "right"
     if not options.resolution: options.resolution = "auto"
     if not options.displays: options.displays = "auto"
     if not options.debug: options.debug = logging.WARNING
@@ -148,6 +153,7 @@ def do_main():
             logres.reverse()
             print 'display %s: %s'%(disp, sw.get_display_name(disp))
             print ' resolutions: '+', '.join(logres)
+
     elif 'clone' in options.actions:
         # determine resolution
         resolution = options.resolution
@@ -159,19 +165,42 @@ def do_main():
                 sys.exit(1)
             resolution = commonres[0]
         # and switch
-        sw.switch_clone(resolution, options.displays)
+        sw.switch_clone(options.displays, resolution)
+
     elif 'extend' in options.actions:
-        # TODO
         # determine resolutions
+        resolution = options.resolution
+        if resolution == 'max':     # max resolution for each
+            ress = get_resolutions(sw, options.displays)
+            # TODO find optimal resolution for each display, might not be maximum
+            ress = map(lambda x: x[0], ress)
+        elif resolution == 'auto':  # find highest common resolution
+            ress = get_resolutions(sw, options.displays)
+            commonres = get_common_resolutions(ress)
+            if len(commonres)==0:
+                logging.critical('displays share no common resolution')
+                sys.exit(1)
+            ress = [commonres[0]] * len(options.displays)
+        else:                       # list of resolutions specified
+            ress = map(lambda x: x.strip(), resolution.split(','))
+            if len(ress)==1:
+                ress = ress * len(options.displays)
+            elif len(ress) != len(options.displays):
+                logging.critical('resolution: must specify either "auto", "max", a single value, or one for each display')
+                sys.exit(2)
         # and switch
-        pass
+        sw.switch_extend(options.displays, options.direction, ress)
+        
     elif 'export' in options.actions:
         print sw.export_config()
+
     elif 'import' in options.actions:
         sw.import_config('\n'.join(sys.stdin))
+
     else:
         logging.critical('program error, unrecognised action: '+', '.join(options.actions))
         sys.exit(2)
+
 
 def main():
     logging.basicConfig(level=logging.WARNING, format='%(message)s')
@@ -180,7 +209,7 @@ def main():
         do_main()
     except Exception,e:
         logging.error(str(e))
-        #raise # for debugging
+        raise # for debugging
         sys.exit(1)
 
 if __name__ == "__main__":

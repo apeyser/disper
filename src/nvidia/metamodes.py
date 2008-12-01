@@ -243,14 +243,23 @@ def metamode_add_extend(metamode, direction, display, physical, virtual=None):
     if not metamode:
         return MetaMode('%s: %s%s +0+0'%(display,physical,virtual))
     x,y,w,h = metamode.bounding_box()
+    # negative offsets cannot be done need specification of total virtual
+    # resolution which I haven't been able to do using dynamic twinview.
+    # so we just keep the origin at 0,0 always and shift displays instead.
     if physical != 'NULL':
         offset = 0,0
         if direction == 'left':
-            offset = x - size[0], 0
+            #offset = x - size[0], 0
+            offset = 0, 0
+            for d in metamode.metamodes:
+                d.position[0] += size[0]
         elif direction == 'right':
             offset = x+w, 0
         elif direction == 'top':
-            offset = 0, y - size[1]
+            #offset = 0, y - size[1]
+            offset = 0, 0
+            for d in metamode.metamodes:
+                d.position[1] += size[1]
         elif direction == 'bottom':
             offset = 0, y+h
         else:
@@ -325,10 +334,12 @@ if __name__ == '__main__':
     if m1 != m2:
         print 'ERROR: metamode_clone: %s'%str(m2)
     for dir,mmline in [
-            ('right', 'CRT-0: 800x600 +0+0, DFP-0: 200x300 +800+000, TV-0: 640x480 +1000+000'),
-            ('left',  'CRT-0: 800x600 +0+0, DFP-0: 200x300 -200+000, TV-0: 640x480  -840+000'),
-            ('top',   'CRT-0: 800x600 +0+0, DFP-0: 200x300   +0-300, TV-0: 640x480    +0-780'),
-            ('bottom','CRT-0: 800x600 +0+0, DFP-0: 200x300   +0+600, TV-0: 640x480    +0+900') ]:
+            ('right', 'CRT-0: 800x600   +0+000, DFP-0: 200x300 +800+000, TV-0: 640x480 +1000+000'),
+           #('left',  'CRT-0: 800x600   +0+000, DFP-0: 200x300 -200+000, TV-0: 640x480  -840+000'),
+            ('left',  'CRT-0: 800x600 +840+000, DFP-0: 200x300 +640+000, TV-0: 640x480    +0+000'),
+           #('top',   'CRT-0: 800x600   +0+000, DFP-0: 200x300   +0-300, TV-0: 640x480    +0-780'),
+            ('top',   'CRT-0: 800x600   +0+780, DFP-0: 200x300   +0+480, TV-0: 640x480    +0+000'),
+            ('bottom','CRT-0: 800x600   +0+000, DFP-0: 200x300   +0+600, TV-0: 640x480    +0+900') ]:
         m = metamode_add_extend(None, dir, 'CRT-0', [800,600])
         m = metamode_add_extend(m, dir, 'DFP-0', [200,300])
         m = metamode_add_extend(m, dir, 'TV-0', [640,480])

@@ -27,10 +27,12 @@ disper: disper.in
 # afterwards the file can be committed to the repository
 disper.1: src/cli.py
 	help2man --name="on-the-fly display switcher" \
-		-N --section=1 --output=disper.1 ./src/cli.py
+		-N --section=1 --output=disper.1.tmp ./src/cli.py
+	perl -e '$$_=join("",<STDIN>);s/\.IP\s*Actions:\s*\.IP/.SH ACTIONS\n.TP/im;print' <disper.1.tmp >disper.1
+	rm -f disper.1.tmp
 
 clean:
-	rm -f disper
+	rm -f disper disper.1.tmp
 	find . -name *.pyc -exec rm -f {} \;
 	find . -name *.pyo -exec rm -f {} \;
 	find . -name core -exec rm -f {} \;
