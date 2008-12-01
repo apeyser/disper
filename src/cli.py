@@ -66,10 +66,7 @@ def do_main():
     ### option defitions
     usage = "usage: %prog [options] (-l|-s|-c|-e|-p|-i)"
     version = ' '.join(map(str, [progname, progver]))
-    parser = optparse.OptionParser(usage, version=version)
-    # use no defaults because it makes it impossible to detect if an option was
-    # set explicitly or not
-    #parser.set_defaults(resolution='auto', displays='auto', debug=logging.WARNING)
+    parser = optparse.OptionParser(usage=usage, version=version)
 
     parser.add_option('-v', '--verbose', action='store_const', dest='debug', const=logging.INFO,
         help='show what\'s happening')
@@ -77,11 +74,13 @@ def do_main():
         help='be quiet and only show errors')
     parser.add_option('-r', '--resolution', dest='resolution',  
         help='set resolution, e.g. "800x600", or "auto" to detect the highest common '+
-             'resolution. For extend, "max" can be specified to use the maximum '+
-             'for each display device.')
+             'resolution. For extend it is also possible to enter a comma-separated list '+
+             'of resolutions (one for each display), or "max" to use the maximum '+
+             'resolution for each device.')
     parser.add_option('-d', '--displays', dest='displays',
         help='comma-separated list of displays to operate on, or "auto" to detect')
     parser.add_option('-t', '--direction', dest='direction',
+        choices=['left','right','top','bottom'],
         help='where to extend displays: "left", "right", "top", or "bottom"')
 
     group = optparse.OptionGroup(parser, 'Actions',
