@@ -172,14 +172,17 @@ def do_main():
         if resolution == 'max':     # max resolution for each
             ress = get_resolutions(sw, options.displays)
             # TODO find optimal resolution for each display, might not be maximum
-            ress = map(lambda x: x[0], ress)
-        elif resolution == 'auto':  # find highest common resolution
-            ress = get_resolutions(sw, options.displays)
-            commonres = get_common_resolutions(ress)
-            if len(commonres)==0:
-                logging.critical('displays share no common resolution')
-                sys.exit(1)
-            ress = [commonres[0]] * len(options.displays)
+            ress = map(lambda x: get_common_resolutions([x])[0], ress)
+            logging.info('maximum resolutions for displays: '+', '.join(ress))
+        elif resolution == 'auto':  # use preferred resolution for each
+            ress = []
+            allress = get_resolutions(sw, options.displays)
+            for i,d in enumerate(options.displays):
+                r = sw.get_display_preferred_res(d)
+                if not r:
+                    r = get_common_resolutions([allress[i]])[0]
+                ress.append(r)
+            logging.info('preferred resolutions for displays: '+', '.join(ress))
         else:                       # list of resolutions specified
             ress = map(lambda x: x.strip(), resolution.split(','))
             if len(ress)==1:
@@ -187,6 +190,7 @@ def do_main():
             elif len(ress) != len(options.displays):
                 logging.critical('resolution: must specify either "auto", "max", a single value, or one for each display')
                 sys.exit(2)
+            logging.info('selected resolutions for displays: '+', '.join(ress))
         # and switch
         sw.switch_extend(options.displays, options.direction, ress)
         

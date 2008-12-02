@@ -63,6 +63,10 @@ NV_CTRL_MAX_SCREEN_HEIGHT               = 244 #/* R--G */
 NV_CTRL_MAX_DISPLAYS                    = 245 #/* R--G */
 NV_CTRL_MULTIGPU_DISPLAY_OWNER          = 247 #/* R--- */
 NV_CTRL_GPU_SCALING                     = 248 #/* RWDG */
+NV_CTRL_FRONTEND_RESOLUTION             = 249 #/* R-DG */
+NV_CTRL_BACKEND_RESOLUTION              = 250 #/* R-DG */
+NV_CTRL_FLATPANEL_NATIVE_RESOLUTION     = 251 #/* R-DG */
+NV_CTRL_FLATPANEL_BEST_FIT_RESOLUTION   = 252 #/* R-DG */
 NV_CTRL_GPU_POWER_SOURCE                = 262 #/* R--G */
 
 NV_CTRL_DEPTH_30_ALLOWED                = 279 #/* R--G */

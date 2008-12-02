@@ -60,7 +60,7 @@ class NVidiaSwitcher:
                 if disp in displays:
                     return disp
         # this should be unreachable code, but be safe
-        self.error('program error, could not determine primary display')
+        self.log.error('program error, could not determine primary display')
         return displays[0]
 
 
@@ -107,12 +107,10 @@ class NVidiaSwitcher:
         For an LCD-device, this returns the native resolution.
         Displays need to be associated to probe their modelines, so this method
         temporarily changes that (and reverts to the old setup before
-        returning).'''
+        returning). May return False if no preferred res detected.'''
         self._push_display_association([ndisp])
-        self.nv.build_modepool(self.screen, ndisp)
+        self.nv.build_display_modepool(self.screen, ndisp)
         res = self.nv.get_dfp_native_resolution(self.screen, ndisp)
-        if not res:
-            res = self.get_display_supported_res(ndisp)[0]
         self._pop_display_association()
         return res
 

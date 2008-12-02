@@ -330,7 +330,7 @@ class NVidiaControl(NVidiaControlLowLevel):
         in order to be displayed.
 
         This attribute is only valid for flat panel (DFP) display devices.'''
-        res = self.query_int_attribute(target, [], NV_CTRL_NATIVE_RESOLUTION)
+        res = self.query_int_attribute(target, [], NV_CTRL_FLATPANEL_NATIVE_RESOLUTION)
         if not res.flags: return False
         return res.value>>16, res.value&0xffff
 
@@ -342,7 +342,7 @@ class NVidiaControl(NVidiaControlLowLevel):
         get_best_fit_resolution() and get_native_resolution().
 
         This attribute is only valid for flat panel (DFP) display devices.'''
-        res = self.query_int_attribute(target, [], NV_CTRL_BEST_FIT_RESOLUTION)
+        res = self.query_int_attribute(target, [], NV_CTRL_FLATPANEL_BEST_FIT_RESOLUTION)
         if not res.flags: return False
         return res.value>>16, res.value&0xffff
 
