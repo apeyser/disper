@@ -31,10 +31,8 @@ def get_resolutions_display(sw, disp):
         logging.warning('no resolutions found for display %s, falling back to default'%disp)
     return r
 
-def get_resolutions(sw, displays = []):
+def get_resolutions(sw, displays):
     '''return an array of resolution-sets for each display connected'''
-    if len(displays) == 0:
-        displays = sw.get_displays()
     res = []
     for disp in displays:
         res.append(get_resolutions_display(sw, disp))
@@ -52,6 +50,29 @@ def get_common_resolutions(res):
     commonres.reverse()
     return commonres
 
+def get_common_resolutions_component(res, width):
+    '''return a list of resolution configurations. Each entry is a list of
+    resolutions for each display, such that either their width is equal
+    (if width is True), or their height (width is False).
+    Currently each configuration has a unique width/height, and the resolution
+    with heighest number of pixels is chosen each time.'''
+    c=0
+    if not width: c=2
+    # get common width or height
+    common = set(map(lambda x: x.partition('x')[c], res[0]))
+    for n in range(1,len(res)):
+        common.intersection_update(set(map(lambda x: x.partition('x')[c], res[n])))
+    # get resolutions that have it
+    resout = []
+    for com in reversed(sorted(common)):
+        reso = []
+        for d in res:
+            r = filter(lambda x: x.partition('x')[c]==com, d)
+            r = list(r)
+            r.sort(_resolutions_sort)
+            reso.append(r[-1])
+        resout.append(reso)
+    return resout
 
 def _resolutions_sort(a, b):
     '''sort function for resolution strings in the form "WxH", sorts
@@ -172,14 +193,27 @@ def do_main():
         if resolution == 'max':     # max resolution for each
             ress = get_resolutions(sw, options.displays)
             # TODO find optimal resolution for each display, might not be maximum
-            ress = map(lambda x: x[0], ress)
-        elif resolution == 'auto':  # find highest common resolution
+            print '==',ress
+            ress = map(lambda x: get_common_resolutions([x])[0], ress)
+            print '--',ress
+        elif resolution == 'auto':  # highest resolutions without dead area
             ress = get_resolutions(sw, options.displays)
-            commonres = get_common_resolutions(ress)
-            if len(commonres)==0:
-                logging.critical('displays share no common resolution')
-                sys.exit(1)
-            ress = [commonres[0]] * len(options.displays)
+            # try to avoid dead areas first
+            if options.direction=='right' or options.direction=='left':
+                # horizontal direction, so height must be equal
+                dir = False
+                msg = 'height'
+            else:
+                # vertical direction, so width must be equal
+                dir = True
+                msg = 'width'
+            commonres = get_common_resolutions_component(ress, dir)
+            for c in commonres:
+                if len(c)==0:
+                    logging.critical('displays share no common %s'%msg)
+                    sys.exit(1)
+            # now choose best resolution for each display
+            ress = commonres[0]
         else:                       # list of resolutions specified
             ress = map(lambda x: x.strip(), resolution.split(','))
             if len(ress)==1:
