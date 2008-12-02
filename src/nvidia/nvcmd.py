@@ -222,7 +222,7 @@ class NVidiaControl(NVidiaControlLowLevel):
         mms = self.query_binary_data(target, [], NV_CTRL_BINARY_DATA_METAMODES)
         return MetaModeList(filter(lambda x: x, mms.data.split('\0')))
 
-    def add_screen_metamode(self, target, mm):
+    def add_metamode(self, target, mm):
         '''provide a MetaMode string as input. return newly created MetaMode
         on success, or -1 if it failed.
 
@@ -242,7 +242,7 @@ class NVidiaControl(NVidiaControlLowLevel):
         if not r: return -1
         return int(r.group(1))
 
-    def delete_screen_metamode(self, target, mm):
+    def delete_metamode(self, target, mm):
         '''Deletes an existing MetaMode from the specified X Screen. The
         currently selected MetaMode cannot be deleted. (This also means you
         cannot delete the last MetaMode).  The MetaMode string should have the
@@ -264,7 +264,7 @@ class NVidiaControl(NVidiaControlLowLevel):
         res = self.set_string_attribute(target, [], NV_CTRL_STRING_DELETE_METAMODE, mm)
         return res.flags
 
-    def build_modepool(self, target, display, opt=None):
+    def build_display_modepool(self, target, display, opt=None):
         '''build a ModePool for the specified display device on the specified
         target (either an X screen or a GPU). This is typically used to
         generate a ModePool for a display device on a GPU on which no X screens
@@ -302,7 +302,51 @@ class NVidiaControl(NVidiaControlLowLevel):
         res = self.set_int_attribute(target, [], NV_CTRL_ASSOCIATED_DISPLAY_DEVICES, mask)
         return res.flags
 
-    def set_screen_scaling(self, target, display, starget, smethod):
+    def get_frontend_resolution(self, target, display):
+        '''return the dimensions of the frontend (current) resolution as
+        determined by the NVIDIA X Driver as [width, height].'''
+        res = self.query_int_attribute(target, [], NV_CTRL_FRONTEND_RESOLUTION)
+        if not res.flags: return False
+        return res>>16, res&0xffff
+
+    def get_backend_resolution(self, target, display):
+        '''return the dimensions of the backend resolution as determined by the
+        NVIDIA X Driver as [width, height].
+
+        The backend resolution is the resolution (supported by the display
+        device) the GPU is set to scale to.  If this resolution matches the
+        frontend resolution, GPU scaling will not be needed/used.'''
+        res = self.query_int_attribute(target, [], NV_CTRL_BACKEND_RESOLUTION)
+        if not res.flags: return False
+        return res.value>>16, res.value&0xffff
+
+    def get_dfp_native_resolution(self, target, display):
+        '''return the dimensions of the native resolution of the flat panel as
+        determined by the NVIDIA X Driver as [width, height].
+
+        The native resolution is the resolution at which a flat panel
+        must display any image.  All other resolutions must be scaled to this
+        resolution through GPU scaling or the DFP's native scaling capabilities
+        in order to be displayed.
+
+        This attribute is only valid for flat panel (DFP) display devices.'''
+        res = self.query_int_attribute(target, [], NV_CTRL_NATIVE_RESOLUTION)
+        if not res.flags: return False
+        return res.value>>16, res.value&0xffff
+
+    def get_dfp_best_fit_resolution(self, target, display):
+        '''return the dimensions of the resolution, selected by the X driver,
+        from the DFP's EDID that most closely matches the frontend resolution
+        of the current mode as [width, height]. The best fit resolution is
+        selected on a per-mode basis. set_scaling() is used to select between
+        get_best_fit_resolution() and get_native_resolution().
+
+        This attribute is only valid for flat panel (DFP) display devices.'''
+        res = self.query_int_attribute(target, [], NV_CTRL_BEST_FIT_RESOLUTION)
+        if not res.flags: return False
+        return res.value>>16, res.value&0xffff
+
+    def set_gpu_scaling(self, target, display, starget, smethod):
         '''controls what the GPU scales to and how. If starget is 'best fit',
         the GPU scales the frontend (current) mode to the closest larger
         resolution in the flat panel's EDID and allow the flat panel to do its
@@ -335,5 +379,29 @@ class NVidiaControl(NVidiaControlLowLevel):
             raise ValueError('Scaling method must be one of "stretched", "centered" or "aspect scaled"')
         res = self.set_int_attribute(target, [display], NV_CTRL_GPU_SCALING, mode)
         return res.flags
+
+    def get_gpu_scaling(self, target, display):
+        '''return current GPU scaling as [target, method].
+        See set_gpu_scaling() for details.'''
+        res = self.query_int_attribute(target, [], NV_CTRL_GPU_SCALING)
+        if not res.flags: return False
+        starget = res.value >> 16
+        if starget == 1:   starget = 'best fit'
+        elif starget == 2: starget = 'native'
+        smethod = res.value & 0xffff
+        if smethod == 1:   smethod = 'stretched'
+        elif smethod == 2: smethod = 'centered'
+        elif smethod == 3: smethod = 'aspect scaled'
+        return starget, smethod
+
+    def get_max_displays(self, target):
+        '''return the maximum number of display devices that can be driven
+        simultaneously on a GPU (e.g., that can be used in a MetaMode at once).
+        Note that this does not indicate the maximum number of bits that can be
+        set in NV_CTRL_CONNECTED_DISPLAYS, because more display devices can be
+        connected than are actively in use.'''
+        res = self.query_int_attribute(target, [], NV_CTRL_MAX_DISPLAYS)
+        if not res.flags: return False
+        return res.value
 
 # vim:ts=4:sw=4:expandtab:

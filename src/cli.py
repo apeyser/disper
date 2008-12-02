@@ -25,7 +25,7 @@ progver = '0.1.3'
 
 def get_resolutions_display(sw, disp):
     '''return a set of resolution for the specified display'''
-    r = sw.get_display_res(disp)
+    r = sw.get_display_supported_res(disp)
     if len(r)==0:
         r = set(['800x600','640x480'])
         logging.warning('no resolutions found for display %s, falling back to default'%disp)

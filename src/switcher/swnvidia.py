@@ -25,6 +25,7 @@ class NVidiaSwitcher:
     nvidia = None
     displays = None
     _display_associations = []
+    _resolutions = {}
 
 
     def __init__(self):
@@ -38,6 +39,7 @@ class NVidiaSwitcher:
         if self.displays:
             return self.displays
 
+        self._resolutions = {}
         self.displays = self.nv.probe_displays(self.screen)
         # always put primary display in front
         if self.get_primary_display() in self.displays:
@@ -67,11 +69,15 @@ class NVidiaSwitcher:
         return self.nv.get_display_name(self.screen, ndisp)
 
 
-    def get_display_res(self, ndisp):
+    def get_display_supported_res(self, ndisp):
         '''return a set of supported resolutions for a display.
         Displays need to be associated to probe their modelines, so this method
         temporarily changes that (and reverts to the old setup before
         returning).'''
+
+        # hash data to avoid probing twice
+        if ndisp in self._resolutions:
+            return self._resolutions[ndisp]
 
         # Get display resolutions for all displays. The display needs to have
         # it associated to the X screen to be able to do this. So we check that
@@ -82,7 +88,7 @@ class NVidiaSwitcher:
         #       any metamode line. So create an autoselect modeline first.
         self._push_display_association([ndisp])
 
-        self.nv.build_modepool(self.screen, ndisp)
+        self.nv.build_display_modepool(self.screen, ndisp)
         resolutions = set()
         for m in self.nv.get_display_modelines(self.screen, ndisp):
             r = re.search(r'::\s*"(\d+x\d+)"', m)
@@ -92,7 +98,23 @@ class NVidiaSwitcher:
 
         self._pop_display_association()
 
+        self._resolutions[ndisp] = resolutions
         return resolutions
+
+
+    def get_display_preferred_res(self, ndisp):
+        '''return the preferred resolution for a display.
+        For an LCD-device, this returns the native resolution.
+        Displays need to be associated to probe their modelines, so this method
+        temporarily changes that (and reverts to the old setup before
+        returning).'''
+        self._push_display_association([ndisp])
+        self.nv.build_modepool(self.screen, ndisp)
+        res = self.nv.get_dfp_native_resolution(self.screen, ndisp)
+        if not res:
+            res = self.get_display_supported_res(ndisp)[0]
+        self._pop_display_association()
+        return res
 
 
     def switch_clone(self, displays, res):
@@ -145,8 +167,12 @@ class NVidiaSwitcher:
         return '\n'.join(cfg)
 
 
-    def _switch(self, mmline, displays):
-        '''switch to the specified metamode'''
+    def _switch(self, mmline, displays, scaling=None):
+        '''switch to the specified metamode. mmline is a MetaMode, displays
+        a list of displays to use, and scaling an optional argument specifying
+        the gpu scaling, which is either an array of two elements as returned
+        by NVidiaControl.get_gpu_scaling(), or an array of these elements, one
+        for each display.'''
 
         # make sure requested displays are connected (or metamode can't be created)
         unconndisplays = filter(lambda x: x not in self.get_displays(), displays)
@@ -156,8 +182,12 @@ class NVidiaSwitcher:
 
         # set scaling modes to aspect-ratio scaled
         # this fails if it's done for all of them at once, so do it separately
-        for d in displays:
-            self.nv.set_screen_scaling(self.screen, d, 'best fit', 'aspect scaled')
+        if not scaling: scaling=['best fit', 'aspect scaled']
+        for i,d in enumerate(displays):
+            if type(scaling[0]) == list:
+                self.nv.set_gpu_scaling(self.screen, d, scaling[i][0], scaling[i][1])
+            else:
+                self.nv.set_gpu_scaling(self.screen, d, scaling[0], scaling[1])
 
         # find or create MetaMode
         self._push_display_association(displays)
@@ -184,7 +214,7 @@ class NVidiaSwitcher:
         ## To enter a MetaMode line, the displays involved must have been
         ## associated or the nvidia driver doesn't remember display names.
         self.log.info('adding metamode: %s'%mm)
-        return self.nv.add_screen_metamode(self.screen, mm)
+        return self.nv.add_metamode(self.screen, mm)
 
 
     def _add_metamode_autoselect(self, displays):
@@ -195,13 +225,13 @@ class NVidiaSwitcher:
         ## displays, or the X server may crash.
         mm = nvidia.metamode_clone(displays, 'nvidia-auto-select')
         self.log.info('adding auto-select metamode: %s'%str(mm))
-        return self.nv.add_screen_metamode(self.screen, mm)
+        return self.nv.add_metamode(self.screen, mm)
 
 
     def _delete_metamode(self, id):
         '''delete the specified metamode.'''
         self.log.info('deleting metamode: %d'%id)
-        return self.nv.delete_screen_metamode(self.screen, id)
+        return self.nv.delete_metamode(self.screen, id)
 
 
     def _set_associated_displays(self, displays, dodelete = False):
@@ -281,7 +311,7 @@ class NVidiaSwitcher:
             for d in mm.metamodes:
                 if d.display not in displays and d.physical:
                     self.log.info('deleting dangling metamode %d: %s'%(mm.id,mm))
-                    r = self.nv.delete_screen_metamode(self.screen, mm)
+                    r = self.nv.delete_metamode(self.screen, mm)
                     if not r: self.log.warning('deletion of dangling metamode %d failed'%mm.id)
                     break
 
