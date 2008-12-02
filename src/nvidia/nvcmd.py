@@ -404,4 +404,11 @@ class NVidiaControl(NVidiaControlLowLevel):
         if not res.flags: return False
         return res.value
 
+    def get_display_edid(self, target, display):
+        '''return a display device's EDID information data'''
+        mms = self.query_binary_data(target, [display], NV_CTRL_BINARY_DATA_EDID)
+        if not mms.flags: return False
+        return mms.data
+        
+
 # vim:ts=4:sw=4:expandtab:
