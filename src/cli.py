@@ -36,9 +36,11 @@ def do_main():
         help='be quiet and only show errors')
     parser.add_option('-r', '--resolution', dest='resolution',  
         help='set resolution, e.g. "800x600", or "auto" to detect the highest common '+
-             'resolution. For extend it is possible to enter a single resolutions for '+
+             'resolution. For extend it is possible to enter a single resolution for '+
              'all displays, or a comma-separated list of resolutions (one for each '+
-             'display), or "max" to use the maximum resolution for each device.')
+             'display), or "max" to use the maximum resolution for each device. Beware '+
+             'that many displays advertise resolutions they can not fully show, so '+
+             '"max" is not advised.')
     parser.add_option('-d', '--displays', dest='displays',
         help='comma-separated list of displays to operate on, or "auto" to detect')
     parser.add_option('-t', '--direction', dest='direction',
