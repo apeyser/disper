@@ -1,4 +1,5 @@
-#! /usr/bin/env python
+###############################################################################
+# edid.py - EDID parsing routines
 #
 # code taken from xac-0.6_pre4
 # copyright was not clearly indicated, put probably:
