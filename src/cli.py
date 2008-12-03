@@ -23,44 +23,6 @@ progname = 'disper'
 progver = '0.1.3'
 
 
-def get_resolutions_display(sw, disp):
-    '''return a set of resolution for the specified display'''
-    r = sw.get_display_supported_res(disp)
-    if len(r)==0:
-        r = set(['800x600','640x480'])
-        logging.warning('no resolutions found for display %s, falling back to default'%disp)
-    return r
-
-def get_resolutions(sw, displays = []):
-    '''return an array of resolution-sets for each display connected'''
-    if len(displays) == 0:
-        displays = sw.get_displays()
-    res = []
-    for disp in displays:
-        res.append(get_resolutions_display(sw, disp))
-    return res
-
-def get_common_resolutions(res):
-    '''return a list of common resolutions from an array of resolution-sets
-    as returned by get_resolutions(). return value is sorted from high to
-    low.'''
-    commonres = res[0]
-    for n in range(1,len(res)):
-        commonres.intersection_update(res[n])
-    commonres = list(commonres)
-    commonres.sort(_resolutions_sort)
-    commonres.reverse()
-    return commonres
-
-
-def _resolutions_sort(a, b):
-    '''sort function for resolution strings in the form "WxH", sorts
-    by number of pixels W*H.'''
-    ax,ay = map(int, a.partition('x')[::2])
-    bx,by = map(int, b.partition('x')[::2])
-    return ax*ay - bx*by
-
-
 def do_main():
     '''main program entry point'''
     ### option defitions
@@ -74,9 +36,9 @@ def do_main():
         help='be quiet and only show errors')
     parser.add_option('-r', '--resolution', dest='resolution',  
         help='set resolution, e.g. "800x600", or "auto" to detect the highest common '+
-             'resolution. For extend it is also possible to enter a comma-separated list '+
-             'of resolutions (one for each display), or "max" to use the maximum '+
-             'resolution for each device.')
+             'resolution. For extend it is possible to enter a single resolutions for '+
+             'all displays, or a comma-separated list of resolutions (one for each '+
+             'display), or "max" to use the maximum resolution for each device.')
     parser.add_option('-d', '--displays', dest='displays',
         help='comma-separated list of displays to operate on, or "auto" to detect')
     parser.add_option('-t', '--direction', dest='direction',
@@ -146,53 +108,49 @@ def do_main():
     if 'list' in options.actions:
         # list displays with resolutions
         for disp in options.displays:
-            res = get_resolutions_display(sw, disp)
-            logres = list(res)
-            logres.sort(_resolutions_sort)
-            logres.reverse()
+            res = sw.get_resolutions_display(disp)
+            res.sort()
             print 'display %s: %s'%(disp, sw.get_display_name(disp))
-            print ' resolutions: '+', '.join(logres)
+            print ' resolutions: '+str(res)
 
     elif 'clone' in options.actions:
         # determine resolution
         resolution = options.resolution
         if resolution == 'auto':
-            res = get_resolutions(sw, options.displays)
-            commonres = get_common_resolutions(res)
-            if len(commonres)==0:
+            res = sw.get_resolutions(options.displays).common()
+            if len(res)==0:
                 logging.critical('displays share no common resolution')
                 sys.exit(1)
-            resolution = commonres[0]
+            resolution = sorted(res)[-1]
+        else:
+            resolution = switcher.Resolution(resolution)
         # and switch
         sw.switch_clone(options.displays, resolution)
 
     elif 'extend' in options.actions:
+        # TODO rework this to code reorganisation
         # determine resolutions
         resolution = options.resolution
         if resolution == 'max':     # max resolution for each
-            ress = get_resolutions(sw, options.displays)
-            # TODO find optimal resolution for each display, might not be maximum
-            ress = map(lambda x: get_common_resolutions([x])[0], ress)
-            logging.info('maximum resolutions for displays: '+', '.join(ress))
+            # override auto-detection weights and get highest resolution
+            ress = sw.get_resolutions(options.displays)
+            for rl in ress.values():
+                for r in rl: r.weight = 0
+            ress = ress.select()
+            logging.info('maximum resolutions for displays: '+str(ress))
         elif resolution == 'auto':  # use preferred resolution for each
-            ress = []
-            allress = get_resolutions(sw, options.displays)
-            for i,d in enumerate(options.displays):
-                r = sw.get_display_preferred_res(d)
-                if not r:
-                    r = get_common_resolutions([allress[i]])[0]
-                ress.append(r)
-            logging.info('preferred resolutions for displays: '+', '.join(ress))
+            ress = sw.get_resolutions(options.displays).select()
+            logging.info('preferred resolutions for displays: '+str(ress))
         else:                       # list of resolutions specified
-            ress = map(lambda x: x.strip(), resolution.split(','))
+            ress = switcher.ResolutionSelection(resolution, options.displays)
             if len(ress)==1:
                 ress = ress * len(options.displays)
             elif len(ress) != len(options.displays):
                 logging.critical('resolution: must specify either "auto", "max", a single value, or one for each display')
                 sys.exit(2)
-            logging.info('selected resolutions for displays: '+', '.join(ress))
+            logging.info('selected resolutions for displays: '+str(ress))
         # and switch
-        sw.switch_extend(options.displays, options.direction, ress)
+        sw.switch_extend(options.direction, ress)
         
     elif 'export' in options.actions:
         print sw.export_config()

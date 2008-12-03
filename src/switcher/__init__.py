@@ -13,33 +13,101 @@
 # By using, editing and/or distributing this software you agree to
 # the terms and conditions of this license.
 
-# backends
+import logging
+
+from edid import Edid
+from resolutions import *
 from swnvidia import NVidiaSwitcher
 
+# backends
 _backends = [NVidiaSwitcher]
 
 class Switcher:
 
-	backend = None
+    _displays = None
+    _resolutions = ResolutionCollection()
+    backend = None
 
-	def __init__(self):
-		'''Initialise the switcher and find a backend'''
-		self._probe_backend()
+    def __init__(self):
+        '''Initialise the switcher and find a backend'''
+        self.log = logging.getLogger('switcher')
+        self._probe_backend()
 
-	def _probe_backend(self):
-		'''Find and instantiate a suitable backend'''
-		self.backend = None
-		for b in _backends:
-			try:
-				self.backend = b()
-			except Exception,e:
-				continue
-			break
-		if not self.backend:
-			raise Exception('No supported video card found')
+    def _probe_backend(self):
+        '''Find and instantiate a suitable backend'''
+        self.backend = None
+        for b in _backends:
+            try:
+                self.backend = b()
+            except Exception,e:
+                continue
+            break
+        if not self.backend:
+            raise Exception('No supported video card found')
 
-	def __getattr__(self, name):
-		'''Pass unrecognised methods to the switcher itself; this is to
-		simulate binding to a parent class at runtime.'''
-		return getattr(self.backend, name)
+    ## the following methods must be defined by backends; see swnvidia.py
+    ## for a complete example and an explanation of these methods
+    #def get_displays(self):
+    #def get_primary_display(self):
+    #def get_display_name(self, ndisp):
+    #def get_display_supported_res(self, ndisp):
+    #def get_display_preferred_res(self, ndisp):
+    #def get_display_edid(self, ndisp):
+    #def switch_clone(self, displays, res):
+    #def switch_extend(self, displays, direction, ress):
+    #def import_config(self, cfg):
+    #def export_config(self):
 
+    def __getattr__(self, name):
+        '''Pass unrecognised methods to the switcher itself; this is to
+        simulate binding to a parent class at runtime.'''
+        return getattr(self.backend, name)
+
+    def get_displays(self):
+        '''return an array of connected displays'''
+        # hash displays to avoid probing twice
+        if self._displays: return self._displays
+        self._displays = self.backend.get_displays()
+        # always put primary display in front
+        if self.get_primary_display() in self._displays:
+            self._displays = [self.get_primary_display()] + \
+                filter(lambda x: x!=self.get_primary_display(), self._displays)
+        return self._displays
+
+    def get_resolutions_display(self, disp):
+        '''return a list of resolutions for the specified display'''
+        # hash resolutions to avoid probing them twice
+        if disp in self._resolutions: return self._resolutions[disp]
+        # get supported resolutions from driver
+        r = ResolutionList(self.backend.get_display_supported_res(disp))
+        if len(r)==0:
+            r = ResolutionList('800x600, 640x480')
+            self.log.warning('no resolutions found for display %s, falling back to: %s'%(disp, r))
+        # bump weight of flat-panel display with 1000
+        res = self.backend.get_display_preferred_res(disp)
+        if res:
+            if res in r: r[r.index(res)].weight += 1000
+            else: r.append(res)
+        # bump weight of EDID resolutions with 100
+        edid_data = self.backend.get_display_edid(disp)
+        if edid_data:
+            edid = Edid(edid_data)
+            for d in edid.get_monitor_details():
+                title, info = d
+                if title != 'Detailed Timing': continue
+                res = Resolution([info['horizontal_active'], info['vertical_active']])
+                if res in r: r[r.index(res)].weight += 100
+                else: r.append(res)
+        self.log.info('resolutions of '+str(disp)+': '+', '.join(map(str,sorted(r))))
+        self._resolutions[disp] = r
+        return r
+
+    def get_resolutions(self, displays):
+        '''return a ResolutionCollection which is a hash with resolutions for
+        each display'''
+        res = ResolutionCollection()
+        for disp in displays:
+            res[disp] = self.get_resolutions_display(disp)
+        return res
+
+# vim:ts=4:sw=4:expandtab:

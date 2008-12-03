@@ -17,15 +17,14 @@ import re
 import logging
 
 import xrandr
-
 import nvidia
+
+from resolutions import *
 
 class NVidiaSwitcher:
 
     nvidia = None
-    displays = None
     _display_associations = []
-    _resolutions = {}
 
 
     def __init__(self):
@@ -36,17 +35,8 @@ class NVidiaSwitcher:
 
     def get_displays(self):
         '''return an array of connected displays'''
-        if self.displays:
-            return self.displays
-
-        self._resolutions = {}
-        self.displays = self.nv.probe_displays(self.screen)
-        # always put primary display in front
-        if self.get_primary_display() in self.displays:
-            self.displays = [self.get_primary_display()] + \
-                filter(lambda x: x!=self.get_primary_display(), self.displays)
-
-        return self.displays
+        displays = self.nv.probe_displays(self.screen)
+        return displays
 
 
     def get_primary_display(self):
@@ -75,11 +65,7 @@ class NVidiaSwitcher:
         temporarily changes that (and reverts to the old setup before
         returning).'''
 
-        # hash data to avoid probing twice
-        if ndisp in self._resolutions:
-            return self._resolutions[ndisp]
-
-        # Get display resolutions for all displays. The display needs to have
+        # Get display resolutions for display. The display needs to have
         # it associated to the X screen to be able to do this. So we check that
         # it is associated first and do so when needed. Restore associated
         # displays afterwards.
@@ -94,20 +80,17 @@ class NVidiaSwitcher:
             r = re.search(r'::\s*"(\d+x\d+)"', m)
             if not r: continue
             resolutions.add(r.group(1))
-        self.log.info('resolutions of %s: %s'%(ndisp, ', '.join(resolutions)))
 
         self._pop_display_association()
 
-        self._resolutions[ndisp] = resolutions
         return resolutions
 
 
     def get_display_preferred_res(self, ndisp):
         '''return the preferred resolution for a display.
-        For an LCD-device, this returns the native resolution.
         Displays need to be associated to probe their modelines, so this method
         temporarily changes that (and reverts to the old setup before
-        returning). May return False if no preferred res detected.'''
+        returning).'''
         self._push_display_association([ndisp])
         self.nv.build_display_modepool(self.screen, ndisp)
         res = self.nv.get_dfp_native_resolution(self.screen, ndisp)
@@ -115,21 +98,25 @@ class NVidiaSwitcher:
         return res
 
 
+    def get_display_edid(self, ndisp):
+        '''return the EDID data for a display.'''
+        return self.nv.get_display_edid(self.screen, ndisp)
+
+
     def switch_clone(self, displays, res):
         '''switch to resolution and clone all displays'''
-        mm = nvidia.metamode_clone(displays, res)
+        mm = nvidia.metamode_clone(displays, str(res))
         return self._switch(mm, displays)
 
 
-    def switch_extend(self, displays, direction, ress):
-        '''extend desktop across all displays. displays is a list of display
-        names, direction one of 'left'/'right'/'bottom'/'top', and ress an
-        array of resolutions, one for each display.'''
+    def switch_extend(self, direction, ress):
+        '''extend desktop across all displays. direction is one of
+        'left'/'right'/'bottom'/'top', and ress a dict of a resolution
+        for each display.'''
         mm = None
-        for i in range(len(displays)):
-            disp,res = displays[i], ress[i]
-            mm = nvidia.metamode_add_extend(mm, direction, disp, res)
-        return self._switch(mm, displays)
+        for disp,res in ress.iteritems():
+            mm = nvidia.metamode_add_extend(mm, direction, disp, str(res))
+        return self._switch(mm, ress.keys())
 
 
     def import_config(self, cfg):
