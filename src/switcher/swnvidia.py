@@ -167,15 +167,6 @@ class NVidiaSwitcher:
             raise Exception('unconnected displays referenced, please connect: ' + \
                 ', '.join(unconndisplays))
 
-        # set scaling modes to aspect-ratio scaled
-        # this fails if it's done for all of them at once, so do it separately
-        if not scaling: scaling=['best fit', 'aspect scaled']
-        for i,d in enumerate(displays):
-            if type(scaling[0]) == list:
-                self.nv.set_gpu_scaling(self.screen, d, scaling[i][0], scaling[i][1])
-            else:
-                self.nv.set_gpu_scaling(self.screen, d, scaling[0], scaling[1])
-
         # find or create MetaMode
         self._push_display_association(displays)
         try:
@@ -189,6 +180,15 @@ class NVidiaSwitcher:
 
             # change to this mode using xrandr and refresh as id
             self._xrandr_switch(mmid)
+
+            # set scaling modes to aspect-ratio scaled
+            # this fails if it's done for all of them at once, so do it separately
+            if not scaling: scaling=['best fit', 'aspect scaled']
+            for i,d in enumerate(displays):
+                if type(scaling[0]) == list:
+                    self.nv.set_gpu_scaling(self.screen, d, scaling[i][0], scaling[i][1])
+                else:
+                    self.nv.set_gpu_scaling(self.screen, d, scaling[0], scaling[1])
         except:
             # delete dangling metamodes and deassociate old
             self._cleanup_metamodes(displays)
