@@ -25,8 +25,10 @@ progname = 'disper'
 progver = '0.1.3'
 
 
-def do_main():
+def main():
     '''main program entry point'''
+    if not logging.getLogger():
+        logging.basicConfig(level=logging.WARNING, format='%(message)s')
     ### option defitions
     usage = "usage: %prog [options] (-l|-s|-c|-e|-p|-i)"
     version = ' '.join(map(str, [progname, progver]))
@@ -166,16 +168,6 @@ def do_main():
         logging.critical('program error, unrecognised action: '+', '.join(options.actions))
         sys.exit(2)
 
-
-def main():
-    logging.basicConfig(level=logging.WARNING, format='%(message)s')
-
-    try:
-        do_main()
-    except Exception,e:
-        logging.error(str(e))
-        raise # for debugging
-        sys.exit(1)
 
 if __name__ == "__main__":
     main()
