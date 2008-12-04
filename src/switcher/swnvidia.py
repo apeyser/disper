@@ -123,14 +123,20 @@ class NVidiaSwitcher:
 
     def import_config(self, cfg):
         '''restore a display configuration as exported by export_config()'''
-        displays = mmline = None
+        backend = displays = mmline = None
         for l in cfg.splitlines():
             key, sep, value = map(lambda s: s.strip(), l.partition(':'))
+            if key == 'backend':
+                backend = value
             if key == 'associated displays':
                 displays = map(lambda s: s.strip(), value.split(','))
             elif key == 'metamode':
                 mmline = value.strip()
 
+        if not backend:
+            self.log.warning('no backend specified, assuming nvidia')
+        elif backend != 'nvidia':
+            raise Exception('can only import what is exported by the nvidia backend')
         if not displays:
             raise Exception('"associated displays" missing from configuration')
         if not mmline:
@@ -142,7 +148,7 @@ class NVidiaSwitcher:
     def export_config(self):
         '''return a string that contains all information to set the current
         display configuration using import_config().'''
-        cfg = []
+        cfg = ['backend: nvidia']
         # associated displays
         assocdisplays = self.nv.get_screen_associated_displays(self.screen)
         cfg.append('associated displays: ' + ', '.join(assocdisplays))
