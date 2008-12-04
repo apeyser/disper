@@ -22,7 +22,7 @@ import switcher
 
 # program name and version
 progname = 'disper'
-progver = '0.1.3'
+progver = '0.2.0'
 
 
 def main():

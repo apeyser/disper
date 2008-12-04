@@ -1,3 +1,13 @@
+disper (0.2.0) unstable; urgency=low
+
+  * New point release
+  * Allow import/export of current configuration
+  * Add extend functionality in addition to clone
+  * More intelligent resolution selection
+  * Initial XRandR backend (without import/export)
+
+ -- Willem van Engen <dev-disper@willem.engen.nl>  Thu, 04 Dec 2008 10:46:34 +0100
+
 disper (0.1.3) unstable; urgency=low
 
   * Avoid metamode problems (including crashes) by cleaning up metamodes
