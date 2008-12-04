@@ -107,12 +107,14 @@ class ResolutionSelection(dict):
         if isinstance(sress, ResolutionSelection):
             # copy from other object
             for i in sress: self.append(i)
-        elif type(sress)==str:
-            # parse from string
-            sress = sress.split(',')
+        elif type(displays)==list:
+            if type(sress)==str: 
+                sress = sress.split(',')
+            if type(sress) != list:
+                sress = [sress]
             if len(sress) == 1:
                 sress = sress * len(displays)
-            elif len(sress) != len(displays):
+            if len(sress) != len(displays):
                 raise ValueError('number of resolutions must be equal to number of displays')
             for i,sr in enumerate(sress):
                 self[displays[i]] = Resolution(sr)

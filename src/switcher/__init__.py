@@ -17,10 +17,6 @@ import logging
 
 from edid import Edid
 from resolutions import *
-from swnvidia import NVidiaSwitcher
-
-# backends
-_backends = [NVidiaSwitcher]
 
 class Switcher:
 
@@ -36,14 +32,20 @@ class Switcher:
     def _probe_backend(self):
         '''Find and instantiate a suitable backend'''
         self.backend = None
-        for b in _backends:
-            try:
-                self.backend = b()
-            except Exception,e:
-                continue
-            break
-        if not self.backend:
-            raise Exception('No supported video card found')
+        try:
+            # nVidia must be probed before XRandR because it uses XRandR in a
+            # non-standard way
+            from swnvidia import NVidiaSwitcher
+            self.backend = NVidiaSwitcher()
+            self.log.info('backend: nVidia')
+            return
+        except: pass
+        try:
+            from swxrandr import XRandrSwitcher
+            self.backend = XRandrSwitcher()
+            self.log.info('backend: XRandR')
+            return
+        except: pass
 
     ## the following methods must be defined by backends; see swnvidia.py
     ## for a complete example and an explanation of these methods
