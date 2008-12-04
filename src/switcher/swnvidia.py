@@ -73,15 +73,15 @@ class NVidiaSwitcher:
         #       *crash* when a display is associated that isn't mentioned in
         #       any metamode line. So create an autoselect modeline first.
         self._push_display_association([ndisp])
-
-        self.nv.build_display_modepool(self.screen, ndisp)
-        resolutions = set()
-        for m in self.nv.get_display_modelines(self.screen, ndisp):
-            r = re.search(r'::\s*"(\d+x\d+)"', m)
-            if not r: continue
-            resolutions.add(r.group(1))
-
-        self._pop_display_association()
+        try:
+            self.nv.build_display_modepool(self.screen, ndisp)
+            resolutions = set()
+            for m in self.nv.get_display_modelines(self.screen, ndisp):
+                r = re.search(r'::\s*"(\d+x\d+)"', m)
+                if not r: continue
+                resolutions.add(r.group(1))
+        finally:
+            self._pop_display_association()
 
         return resolutions
 
@@ -92,9 +92,11 @@ class NVidiaSwitcher:
         temporarily changes that (and reverts to the old setup before
         returning).'''
         self._push_display_association([ndisp])
-        self.nv.build_display_modepool(self.screen, ndisp)
-        res = self.nv.get_dfp_native_resolution(self.screen, ndisp)
-        self._pop_display_association()
+        try:
+            self.nv.build_display_modepool(self.screen, ndisp)
+            res = self.nv.get_dfp_native_resolution(self.screen, ndisp)
+        finally:
+            self._pop_display_association()
         return res
 
 
@@ -176,16 +178,22 @@ class NVidiaSwitcher:
 
         # find or create MetaMode
         self._push_display_association(displays)
-        mm = self.nv.get_metamodes(self.screen).find(mmline)
-        if mm:
-            mmid = mm.id
-        else:
-            mmid = self._add_metamode(mmline)
-            if mmid < 0:
-                raise Exception('could not find nor create MetaMode: %s'%mmline)
+        try:
+            mm = self.nv.get_metamodes(self.screen).find(mmline)
+            if mm:
+                mmid = mm.id
+            else:
+                mmid = self._add_metamode(mmline)
+                if mmid < 0:
+                    raise Exception('could not find nor create MetaMode: %s'%mmline)
 
-        # change to this mode using xrandr and refresh as id
-        self._xrandr_switch(mmid)
+            # change to this mode using xrandr and refresh as id
+            self._xrandr_switch(mmid)
+        except:
+            # delete dangling metamodes and deassociate old
+            self._cleanup_metamodes(displays)
+            self._pop_display_association()
+            raise
 
         # delete dangling metamodes and deassociate old
         self._cleanup_metamodes(displays)
@@ -229,7 +237,9 @@ class NVidiaSwitcher:
 
     def _push_display_association(self, displays):
         '''add a display to the currently associated displays and save
-        previous state to return to using _pop_display_association().'''
+        previous state to return to using _pop_display_association().
+        It is best to put the latter in a try ... finally clause to make
+        sure it is always called.'''
         # change association when needed
         olddisplays = self.nv.get_screen_associated_displays(self.screen)
         assocdisplays = set(olddisplays).union(set(displays))

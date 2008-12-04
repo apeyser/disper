@@ -27,8 +27,7 @@ progver = '0.1.3'
 
 def main():
     '''main program entry point'''
-    if not logging.getLogger():
-        logging.basicConfig(level=logging.WARNING, format='%(message)s')
+    logging.basicConfig(level=logging.WARNING, format='%(message)s')
     ### option defitions
     usage = "usage: %prog [options] (-l|-s|-c|-e|-p|-i)"
     version = ' '.join(map(str, [progname, progver]))
