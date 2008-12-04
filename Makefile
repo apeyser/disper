@@ -28,11 +28,12 @@ disper: disper.in
 disper.1: src/cli.py
 	help2man --name="on-the-fly display switcher" \
 		-N --section=1 --output=disper.1.tmp ./src/cli.py
-	perl -e '$$_=join("",<STDIN>);s/\.IP\s*Actions:\s*\.IP/.SH ACTIONS\n.TP/im;print' <disper.1.tmp >disper.1
-	rm -f disper.1.tmp
+	perl -e '$$_=join("",<STDIN>);s/\.IP\s*Actions:\s*\.IP/.SH ACTIONS\n.TP/im;print' <disper.1.tmp >disper.1.tmp.1
+	cat disper.1.tmp.1 | sed 's/cli\.py/disper/g' >disper.1
+	rm -f disper.1.tmp disper.1.tmp.1
 
 clean:
-	rm -f disper disper.1.tmp
+	rm -f disper disper.1.tmp disper.1.tmp.1
 	find . -name *.pyc -exec rm -f {} \;
 	find . -name *.pyo -exec rm -f {} \;
 	find . -name core -exec rm -f {} \;
