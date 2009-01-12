@@ -39,12 +39,14 @@ class Switcher:
             self.backend = NVidiaSwitcher()
             self.log.info('backend: nVidia')
             return
+        except SyntaxError: raise
         except: pass
         try:
             from swxrandr import XRandrSwitcher
             self.backend = XRandrSwitcher()
             self.log.info('backend: XRandR')
             return
+        except SyntaxError: raise
         except: pass
 
     ## the following methods must be defined by backends; see swnvidia.py
