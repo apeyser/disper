@@ -123,5 +123,8 @@ class XRandrSwitcher:
             dprev = d
         self.screen.apply_output_config()
 
+    def set_scaling(self, displays, scaling):
+        raise NotImplementedError('scaling not implemented for XRandR')
+
 
 # vim:ts=4:sw=4:expandtab:

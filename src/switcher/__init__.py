@@ -112,4 +112,9 @@ class Switcher:
             res[disp] = self.get_resolutions_display(disp)
         return res
 
+    def set_scaling(self, displays, scaling):
+        if not scaling in ['default', 'native', 'centered', 'scaled', 'aspect-scaled']:
+            raise ValueError( 'unrecognised scaling mode: %s'%scaling )
+        return self.backend.set_scaling(displays, scaling)
+
 # vim:ts=4:sw=4:expandtab:

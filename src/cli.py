@@ -49,6 +49,9 @@ def main():
     parser.add_option('-t', '--direction', dest='direction',
         choices=['left','right','top','bottom'],
         help='where to extend displays: "left", "right", "top", or "bottom"')
+    parser.add_option('', '--scaling', dest='scaling',
+        choices=['default','native','scaled','centered','aspect-scaled'],
+        help='flat-panel scaling mode: "default", "native", "scaled", "centered", "aspect-scaled"')
 
     group = optparse.OptionGroup(parser, 'Actions',
         'Select exactly one of the following actions')
@@ -131,6 +134,9 @@ def main():
             resolution = switcher.Resolution(resolution)
         # and switch
         sw.switch_clone(options.displays, resolution)
+        # and apply scaling options if requested
+        if options.scaling:
+            sw.set_scaling(options.displays, options.scaling)
 
     elif 'extend' in options.actions:
         # TODO rework this to code reorganisation
@@ -156,6 +162,9 @@ def main():
             logging.info('selected resolutions for displays: '+str(ress))
         # and switch
         sw.switch_extend(options.direction, ress)
+        # and apply scaling options if requested
+        if options.scaling:
+            sw.set_scaling(options.displays, options.scaling)
         
     elif 'export' in options.actions:
         print sw.export_config()
@@ -166,7 +175,6 @@ def main():
     else:
         logging.critical('program error, unrecognised action: '+', '.join(options.actions))
         sys.exit(2)
-
 
 if __name__ == "__main__":
     main()

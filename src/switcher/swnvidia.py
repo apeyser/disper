@@ -186,15 +186,6 @@ class NVidiaSwitcher:
 
             # change to this mode using xrandr and refresh as id
             self._xrandr_switch(mmid)
-
-            # set scaling modes to aspect-ratio scaled
-            # this fails if it's done for all of them at once, so do it separately
-            if not scaling: scaling=['best fit', 'aspect scaled']
-            for i,d in enumerate(displays):
-                if type(scaling[0]) == list:
-                    self.nv.set_gpu_scaling(self.screen, d, scaling[i][0], scaling[i][1])
-                else:
-                    self.nv.set_gpu_scaling(self.screen, d, scaling[0], scaling[1])
         except:
             # delete dangling metamodes and deassociate old
             self._cleanup_metamodes(displays)
@@ -316,5 +307,25 @@ class NVidiaSwitcher:
                     if not r: self.log.warning('deletion of dangling metamode %d failed'%mm.id)
                     break
 
+    def set_scaling(self, displays, scaling):
+        '''update the flat panel scaling mode if it was set previously by
+        nvidia-settings. scaling must be one of: default, native, scaled, centered,
+        aspect-scaled.'''
+
+        if scaling=='default':
+            return
+
+        # this fails if it's done for all of them at once, so do it separately
+        for i,d in enumerate(displays):
+            if scaling=='native':
+                self.nv.set_gpu_scaling(self.screen, d, 'native', 'stretched')
+            elif scaling=='scaled':
+                self.nv.set_gpu_scaling(self.screen, d, 'best fit', 'stretched')
+            elif scaling=='centered':
+                self.nv.set_gpu_scaling(self.screen, d, 'best fit', 'centered')
+            elif scaling=='aspect-scaled':
+                self.nv.set_gpu_scaling(self.screen, d, 'best fit', 'aspect scaled')
+            else:
+                raise ValueError
 
 # vim:ts=4:sw=4:expandtab:

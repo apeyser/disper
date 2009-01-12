@@ -361,9 +361,9 @@ class NVidiaControl(NVidiaControlLowLevel):
         mode = 0
         if type(starget) == int:
             mode += (starget&0xffff)<<16
-        elif starget == 'best fit':
-            mode += 1<<16
         elif starget == 'native':
+            mode += 1<<16
+        elif starget == 'best fit':
             mode += 2<<16
         else:
             raise ValueError('Scaling target must be either "best fit" or "native"')
