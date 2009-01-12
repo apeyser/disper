@@ -235,7 +235,7 @@ class NVidiaSwitcher:
         return self.nv.delete_metamode(self.screen, id)
 
 
-    def _set_associated_displays(self, displays:
+    def _set_associated_displays(self, displays):
         '''set the displays associated to the current X screen. Don't use this
         function directly, rather use both
         _push_display_association() and _pop_display_association().'''

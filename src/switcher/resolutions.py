@@ -17,9 +17,9 @@
 class Resolution:
     '''a single resolution with a width, height, and a sort weight.
     Resolutions can be initialised from a string or a list and can be sorted.'''
-    
-    width = None    # horizontal size of resolution
-    height = None   # vertical size of resolution
+
+    physical = None
+    virtual = None
     weight = 0      # how 'important' this resolution is for sorting
 	
     def __init__(self, val=None, weight=None):
@@ -27,42 +27,70 @@ class Resolution:
 
     def set(self, val, weight=None):
         '''set resolution. Value can be either None, a string in the form
-        "WIDTHxHEIGHT", another Resolution instance, or a list [width,height].
-        when weight is not None, it will be set.'''
-        self.width = self.height = None
+        "WIDTHxHEIGHT", "WIDTHxHEIGHT @VWIDTHxVHEIGHT", another Resolution
+        instance, a list [width,height] or a list
+        [[width,height],[vwidth,vheight].
+        When weight is not None, it will be set.'''
+        self.physical = self.virtual = None
         if weight != None: self.weight = weight
         if isinstance(val, Resolution):
-            self.height = val.height
-            self.width = val.width
+            if val.physical: self.physical = val.physical[0], val.physical[1]
+            if val.virtual: self.virtual = val.virtual[0], val.virtual[1]
             self.weight = val.weight
         elif val == None:
-            self.width = self.height = None
+            pass
         elif type(val) == str:
-            self.width,self.height = map(int, val.partition('x')[::2])
+            parts = val.split('@')
+            self.physical = map(int, parts[0].partition('x')[::2])
+            if len(parts)>1:
+                self.virtual = map(int, parts[1].partition('x')[::2])
+        elif type(val) in [list,tuple]:
+            if type(val[0]) in [list,tuple]:
+                self.physical,self.virtual = val
+            else:
+                self.physical = val
         else:
-            self.width,self.height = val
+            raise TypeError('invalid resolution: '+str(val))
+        # make sure we have fixed type to avoid comparison trouble
+        self.physical = tuple(self.physical)
+        if self.virtual: self.virtual = tuple(self.virtual)
 
     def size(self):
-        return self.width, self.height
+        return self.physical
 
     def __str__(self):
-        return '%dx%d'%(self.width,self.height)
+        s = '%dx%d'%(self.physical[0],self.physical[1])
+        if self.virtual and self.physical != self.virtual:
+            s += ' @%dx%d'%(self.virtual[0],self.virtual[1])
+        return s
 
     def __eq__(self, other):
         if not isinstance(other, Resolution):
             try: other = Resolution(other)
             except: return False
-        return (self.width == other.width) and (self.height == other.height)
+        virt1,virt2 = self.virtual, other.virtual
+        if not virt1: virt1 = self.physical
+        if not virt2: virt2 = other.physical
+        return (self.physical == other.physical) and (virt1 == virt2)
 
     def __ne__(self, other):
         return not self.__eq__(other)
 
     def __cmp__(self, other):
-        # sort order: by number of pixels, but native resolutions at the end
+        # sort order: by weight first, then physical size, then virtual size
         if not isinstance(other, Resolution):
             other = Resolution(other)
-        if self.weight != other.weight: return self.weight - other.weight
-        return self.width*self.height - other.width*other.height
+        diff = self.weight - other.weight
+        if diff: return diff
+        diff = self.physical[0]*self.physical[1] - other.physical[0]*other.physical[1]
+        if diff: return diff
+        virt1,virt2 = self.virtual, other.virtual
+        if not virt1: virt1 = self.physical
+        if not virt2: virt2 = other.physical
+        diff = virt1[0]*virt1[1] - virt2[0]*virt2[1]
+        if diff: return diff
+        # equal
+        return 0
 
     def __hash__(self):
         return hash(self.__str__())
@@ -84,6 +112,14 @@ class ResolutionList(list):
 
     def __str__(self):
         return ', '.join(map(str, self))
+
+    def __eq__(self, other):
+        if not isinstance(other, ResolutionList):
+            other = ResolutionList(other)
+        return list(self) == list(other)
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     def __cmp__(self, other):
         if not isinstance(other, ResolutionList):
@@ -107,10 +143,10 @@ class ResolutionSelection(dict):
         if isinstance(sress, ResolutionSelection):
             # copy from other object
             for i in sress: self.append(i)
-        elif type(displays)==list:
+        elif type(displays) in [list,tuple]:
             if type(sress)==str: 
                 sress = sress.split(',')
-            if type(sress) != list:
+            if type(sress) not in [list,tuple]:
                 sress = [sress]
             if len(sress) == 1:
                 sress = sress * len(displays)
@@ -143,8 +179,9 @@ class ResolutionCollection(dict):
         if len(self) == 0: return ResolutionList()
         common = None
         for disp,rl in self.iteritems():
+            rl = ResolutionList(rl)
             if not common:
-                common = ResolutionList(rl)
+                common = rl
                 continue
             delitems = ResolutionList()
             for c in common:
