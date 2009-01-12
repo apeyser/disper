@@ -123,15 +123,17 @@ class NVidiaSwitcher:
 
     def import_config(self, cfg):
         '''restore a display configuration as exported by export_config()'''
-        backend = displays = mmline = None
+        backend = displays = mmline = scaling = None
         for l in cfg.splitlines():
             key, sep, value = map(lambda s: s.strip(), l.partition(':'))
             if key == 'backend':
                 backend = value
-            if key == 'associated displays':
+            elif key == 'associated displays':
                 displays = map(lambda s: s.strip(), value.split(','))
             elif key == 'metamode':
                 mmline = value.strip()
+            elif key == 'scaling':
+                scaling = map(lambda s: s.strip(), value.split(','))
 
         if not backend:
             self.log.warning('no backend specified, assuming nvidia')
@@ -141,9 +143,15 @@ class NVidiaSwitcher:
             raise Exception('"associated displays" missing from configuration')
         if not mmline:
             raise Exception('"metamode" missing from configuration')
+        # scaling is optional
 
-        return self._switch(mmline, displays)
+        self._switch(mmline, displays)
 
+        if scaling:
+            if len(scaling) != len(displays):
+                raise Exception('number of entries in "scaling" must equal # associated displays')
+            self.set_scaling(displays, scaling)
+            
 
     def export_config(self):
         '''return a string that contains all information to set the current
@@ -157,6 +165,9 @@ class NVidiaSwitcher:
         mm = self.nv.get_current_metamode(self.screen)
         mm = re.sub(r'^.*::\s*', r'', str(mm))
         cfg.append('metamode: ' + mm)
+        # scaling mode of displays
+        scalings = self.get_scaling(assocdisplays)
+        cfg.append('scaling: ' + ', '.join(scalings))
         return '\n'.join(cfg)
 
 
@@ -310,22 +321,34 @@ class NVidiaSwitcher:
     def set_scaling(self, displays, scaling):
         '''update the flat panel scaling mode if it was set previously by
         nvidia-settings. scaling must be one of: default, native, scaled, centered,
-        aspect-scaled.'''
-
-        if scaling=='default':
-            return
+        aspect-scaled. Alternatively, scaling can be a list specifying the scaling
+        for each display separately.'''
 
         # this fails if it's done for all of them at once, so do it separately
         for i,d in enumerate(displays):
-            if scaling=='native':
+            curscaling = scaling
+            if type(curscaling) == list: curscaling = curscaling[i]
+            if curscaling=='default':
+                continue
+            if curscaling=='native':
+                self.log.info('setting scaling of display %s to %s'%(d, curscaling))
                 self.nv.set_gpu_scaling(self.screen, d, 'native', 'stretched')
-            elif scaling=='scaled':
-                self.nv.set_gpu_scaling(self.screen, d, 'best fit', 'stretched')
-            elif scaling=='centered':
-                self.nv.set_gpu_scaling(self.screen, d, 'best fit', 'centered')
-            elif scaling=='aspect-scaled':
-                self.nv.set_gpu_scaling(self.screen, d, 'best fit', 'aspect scaled')
             else:
-                raise ValueError
+                self.log.info('setting scaling of display %s to %s'%(d, curscaling))
+                self.nv.set_gpu_scaling(self.screen, d, 'best-fit', curscaling)
+
+    def get_scaling(self, displays):
+        '''return an array of scaling modes for each display'''
+        scalings = []
+        for d in displays:
+            res = self.nv.get_gpu_scaling(self.screen, d)
+            if not res: # 'default' on error
+                self.log.warning('could not get scaling for screen %s, reverting to "default"'%d)
+                scalings.append('default')
+            elif res[0]=='native':
+                scalings.append('native')
+            else:
+                scalings.append(res[1])
+        return scalings
 
 # vim:ts=4:sw=4:expandtab:

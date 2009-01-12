@@ -347,7 +347,7 @@ class NVidiaControl(NVidiaControlLowLevel):
         return res.value>>16, res.value&0xffff
 
     def set_gpu_scaling(self, target, display, starget, smethod):
-        '''controls what the GPU scales to and how. If starget is 'best fit',
+        '''controls what the GPU scales to and how. If starget is 'best-fit',
         the GPU scales the frontend (current) mode to the closest larger
         resolution in the flat panel's EDID and allow the flat panel to do its
         own scaling to the native resolution. If starget is 'native', the GPU
@@ -355,7 +355,7 @@ class NVidiaControl(NVidiaControlLowLevel):
         resolution, thus disabling any internal scaling the flat panel might
         have.
         
-        smethod can be 'strechted', 'centered' or 'aspect scaled'.
+        smethod can be 'strechted', 'centered' or 'aspect-scaled'.
         
         starget and smethod can also be numbers.'''
         mode = 0
@@ -363,7 +363,7 @@ class NVidiaControl(NVidiaControlLowLevel):
             mode += (starget&0xffff)<<16
         elif starget == 'native':
             mode += 1<<16
-        elif starget == 'best fit':
+        elif starget == 'best-fit':
             mode += 2<<16
         else:
             raise ValueError('Scaling target must be either "best fit" or "native"')
@@ -373,25 +373,25 @@ class NVidiaControl(NVidiaControlLowLevel):
             mode += 1
         elif smethod == 'centered':
             mode += 2
-        elif smethod == 'aspect scaled':
+        elif smethod == 'aspect-scaled':
             mode += 3
         else:
-            raise ValueError('Scaling method must be one of "stretched", "centered" or "aspect scaled"')
+            raise ValueError('Scaling method must be one of "stretched", "centered" or "aspect-scaled"')
         res = self.set_int_attribute(target, [display], NV_CTRL_GPU_SCALING, mode)
         return res.flags
 
     def get_gpu_scaling(self, target, display):
         '''return current GPU scaling as [target, method].
         See set_gpu_scaling() for details.'''
-        res = self.query_int_attribute(target, [], NV_CTRL_GPU_SCALING)
+        res = self.query_int_attribute(target, [display], NV_CTRL_GPU_SCALING)
         if not res.flags: return False
         starget = res.value >> 16
-        if starget == 1:   starget = 'best fit'
-        elif starget == 2: starget = 'native'
+        if starget == 1:   starget = 'native'
+        elif starget == 2: starget = 'best-fit'
         smethod = res.value & 0xffff
         if smethod == 1:   smethod = 'stretched'
         elif smethod == 2: smethod = 'centered'
-        elif smethod == 3: smethod = 'aspect scaled'
+        elif smethod == 3: smethod = 'aspect-scaled'
         return starget, smethod
 
     def get_max_displays(self, target):

@@ -51,7 +51,7 @@ def main():
         help='where to extend displays: "left", "right", "top", or "bottom"')
     parser.add_option('', '--scaling', dest='scaling',
         choices=['default','native','scaled','centered','aspect-scaled'],
-        help='flat-panel scaling mode: "default", "native", "scaled", "centered", "aspect-scaled"')
+        help='flat-panel scaling mode: "default", "native", "scaled", "centered", or "aspect-scaled"')
 
     group = optparse.OptionGroup(parser, 'Actions',
         'Select exactly one of the following actions')
