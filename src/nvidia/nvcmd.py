@@ -305,7 +305,7 @@ class NVidiaControl(NVidiaControlLowLevel):
     def get_frontend_resolution(self, target, display):
         '''return the dimensions of the frontend (current) resolution as
         determined by the NVIDIA X Driver as [width, height].'''
-        res = self.query_int_attribute(target, [], NV_CTRL_FRONTEND_RESOLUTION)
+        res = self.query_int_attribute(target, [display], NV_CTRL_FRONTEND_RESOLUTION)
         if not res.flags: return False
         return res>>16, res&0xffff
 
@@ -316,7 +316,7 @@ class NVidiaControl(NVidiaControlLowLevel):
         The backend resolution is the resolution (supported by the display
         device) the GPU is set to scale to.  If this resolution matches the
         frontend resolution, GPU scaling will not be needed/used.'''
-        res = self.query_int_attribute(target, [], NV_CTRL_BACKEND_RESOLUTION)
+        res = self.query_int_attribute(target, [display], NV_CTRL_BACKEND_RESOLUTION)
         if not res.flags: return False
         return res.value>>16, res.value&0xffff
 
@@ -330,7 +330,7 @@ class NVidiaControl(NVidiaControlLowLevel):
         in order to be displayed.
 
         This attribute is only valid for flat panel (DFP) display devices.'''
-        res = self.query_int_attribute(target, [], NV_CTRL_FLATPANEL_NATIVE_RESOLUTION)
+        res = self.query_int_attribute(target, [display], NV_CTRL_FLATPANEL_NATIVE_RESOLUTION)
         if not res.flags: return False
         return res.value>>16, res.value&0xffff
 
@@ -342,7 +342,7 @@ class NVidiaControl(NVidiaControlLowLevel):
         get_best_fit_resolution() and get_native_resolution().
 
         This attribute is only valid for flat panel (DFP) display devices.'''
-        res = self.query_int_attribute(target, [], NV_CTRL_FLATPANEL_BEST_FIT_RESOLUTION)
+        res = self.query_int_attribute(target, [display], NV_CTRL_FLATPANEL_BEST_FIT_RESOLUTION)
         if not res.flags: return False
         return res.value>>16, res.value&0xffff
 
