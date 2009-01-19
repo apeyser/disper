@@ -46,9 +46,14 @@ class MetaModeDisplay:
     def set(self, value):
         self.display = self.physical = self.virtual = self.position = None
         if not value: return
-        r = re.match(r'^\s*(\S+)\s*:\s*(.*?)\s*$', value)
+        # split display from its configuration
+        r = re.match(r'^\s*(\S*)\s*:\s*(.*?)\s*$', value)
         if not r: raise ValueError('malformed metamode portion: %s'%value)
         self.display, dmm = r.group(1), r.group(2)
+        # check display
+        if not re.match(r'(DFP|CRT|TV)-\d$', self.display):
+            raise Exception("Garbage metamode: restart X before changing the display configuration to avoid crashes in the nVidia driver")
+        # parse display configuration
         if dmm == 'NULL': return
         dmmparts = dmm.split()
         self.physical = dmmparts.pop(0)
