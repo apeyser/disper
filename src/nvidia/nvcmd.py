@@ -264,6 +264,41 @@ class NVidiaControl(NVidiaControlLowLevel):
         res = self.set_string_attribute(target, [], NV_CTRL_STRING_DELETE_METAMODE, mm)
         return res.flags
 
+    def move_metamode(self, target, mm, to):
+        '''moves a MetaMode to the specified index location.
+        The MetaMode must already exist in the X Screen's list of MetaModes (as
+        returned by the get_metamodes(). If the index is larger than the number
+        of MetaModes in the list, the MetaMode is moved to the end of the list.
+        The MetaMode string should have the same syntax as the MetaMode X
+        configuration option, as documented in the NVIDIA driver README.
+ 
+        The MetaMode string must be prepended with a comma-separated list
+        of "token=value" pairs, separated from the MetaMode string by "::".
+        Currently, the only valid token is "index", which indicates where
+        in the MetaMode list the MetaMode should be moved to.
+        
+        Other tokens may be added in the future.
+        
+        E.g.,
+          "index=5 :: CRT-0: 1024x768 @1024x768 +0+0"
+        
+        The mm argument can either be a metamode, MetaMode, or a mode id (integer).
+        '''
+        if type(mm) == int:
+            # retrieve id from MetaModes
+            mm = self.get_metamodes(target).find(mm)
+            if not mm:
+                # not found, modeline id not found
+                return False
+            mm = mm.src
+        elif isinstance(mm, MetaMode):
+            # get original string from metamode
+            mm = mm.src
+        mm = "index=%d :: %s"%(to, re.sub(r'^.*::\s*', r'', mm))
+        res = self.set_string_attribute(target, [], NV_CTRL_STRING_MOVE_METAMODE, mm)
+        return res.flags
+         
+
     def build_display_modepool(self, target, display, opt=None):
         '''build a ModePool for the specified display device on the specified
         target (either an X screen or a GPU). This is typically used to
@@ -409,6 +444,21 @@ class NVidiaControl(NVidiaControlLowLevel):
         mms = self.query_binary_data(target, [display], NV_CTRL_BINARY_DATA_EDID)
         if not mms.flags: return False
         return mms.data
+    
+    def get_xinerama_info_order(self, target):
+        '''return the order that display devices will be returned via
+        Xinerama when TwinViewXineramaInfo is enabled.  Follows the same
+        syntax as the TwinViewXineramaInfoOrder X config option.'''
+        res = self.query_string_attribute(target, [], NV_CTRL_STRING_TWINVIEW_XINERAMA_INFO_ORDER)
+        if not res.flags: return False
+        return res.string
         
+    def set_xinerama_info_order(self, target, displays):
+        '''specify the order that display devices will be returned via
+        Xinerama when TwinViewXineramaInfo is enabled.  Follows the same
+        syntax as the TwinViewXineramaInfoOrder X config option.'''
+        res = self.set_string_attribute(target, [], NV_CTRL_STRING_TWINVIEW_XINERAMA_INFO_ORDER, ', '.join(displays))
+        return res.flags
+
 
 # vim:ts=4:sw=4:expandtab:

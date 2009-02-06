@@ -161,7 +161,7 @@ def main():
                 sys.exit(2)
             logging.info('selected resolutions for displays: '+str(ress))
         # and switch
-        sw.switch_extend(options.direction, ress)
+        sw.switch_extend(options.displays, options.direction, ress)
         # and apply scaling options if requested
         if options.scaling:
             sw.set_scaling(options.displays, options.scaling)

@@ -67,10 +67,10 @@ class XRandrSwitcher:
     def switch_clone(self, displays, res):
         '''switch to resolution and clone all displays'''
         ress = ResolutionSelection(res, displays)
-        return self._switch(ress, xrandr.RELATION_SAME_AS)
+        return self._switch(displays, ress, xrandr.RELATION_SAME_AS)
 
 
-    def switch_extend(self, direction, ress):
+    def switch_extend(self, displays, direction, ress):
         '''extend desktop across all displays. direction is one of
         'left'/'right'/'bottom'/'top', and ress a dict of a resolution
         for each display.'''
@@ -85,7 +85,7 @@ class XRandrSwitcher:
             relation = xrandr.RELATION_BELOW
         else:
             raise ValueError('extend direction must be left/right/bottom/top')
-        return self._switch(ress, relation)
+        return self._switch(displays, ress, relation)
 
 
     def import_config(self, cfg):
@@ -99,10 +99,11 @@ class XRandrSwitcher:
         raise NotImplementedError('export not yet implemented')
 
 
-    def _switch(self, ress, relation):
+    def _switch(self, displays, ress, relation):
         '''switch displays to the specified resolution according to XRandR relation'''
         dprev = None
-        for d,res in ress.iteritems():
+        for d in displays:
+            res = ress[disp]
             # for each display, select mode with highest refresh rate at res
             o = self.screen.get_output_by_name(d)
             modes = []

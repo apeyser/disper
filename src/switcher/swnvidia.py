@@ -111,14 +111,15 @@ class NVidiaSwitcher:
         return self._switch(mm, displays)
 
 
-    def switch_extend(self, direction, ress):
+    def switch_extend(self, displays, direction, ress):
         '''extend desktop across all displays. direction is one of
         'left'/'right'/'bottom'/'top', and ress a dict of a resolution
         for each display.'''
         mm = None
-        for disp,res in ress.iteritems():
+        for disp in displays:
+            res = ress[disp]
             mm = nvidia.metamode_add_extend(mm, direction, disp, str(res))
-        return self._switch(mm, ress.keys())
+        return self._switch(mm, displays)
 
 
     def import_config(self, cfg):
@@ -177,6 +178,39 @@ class NVidiaSwitcher:
         the gpu scaling, which is either an array of two elements as returned
         by NVidiaControl.get_gpu_scaling(), or an array of these elements, one
         for each display.'''
+        
+        '''the nvidia-settings source mentions the following in function
+        update_screen_metamodes() defined in ctkdisplayconfig.c
+        
+        * preprocess
+          - get current list of metamodes for this screen
+          - add all new metamodes to the end of the list
+        * mode switch if needed
+        * postprocess
+          - delete any unused mode
+          - move metamodes to correct location
+          
+        pseudocode:
+          metamode_strs = nv.get_current_list_of_metamodes()
+          cur_metamode_str = nv.get_current_metamode()
+          preprocess_metamodes(screen, metamode_strs) = {
+            for metamode in screen.metamodes:
+              if metamode in metamode_strs:
+                metamode_strs.find(metamode).keep = True
+              else:
+                nv.add_metamode(metamode)
+          }
+          if metamode_str == screen->cur_metamode: clear_apply = 1
+          postprocess_metamodes(screen, metamode_strs) = {
+            for metamode in metamode_strs:
+              if not metamode.keep:
+                nv.delete_metamode(metamode)
+            order_metamodes(screen) = {
+              for i in len(metamodes):
+                nv.move_metamode(metamode[i], i) 
+            }
+          }
+        '''
 
         # make sure requested displays are connected (or metamode can't be created)
         unconndisplays = filter(lambda x: x not in self.get_displays(), displays)
@@ -185,6 +219,7 @@ class NVidiaSwitcher:
                 ', '.join(unconndisplays))
 
         # find or create MetaMode
+        oldxio = self.nv.get_xinerama_info_order(self.screen)
         self._push_display_association(displays)
         try:
             mm = self.nv.get_metamodes(self.screen).find(mmline)
@@ -194,6 +229,10 @@ class NVidiaSwitcher:
                 mmid = self._add_metamode(mmline)
                 if mmid < 0:
                     raise Exception('could not find nor create MetaMode: %s'%mmline)
+                
+            # set order before switch so it is detected
+            self.log.info('setting xinerama info order: '+', '.join(displays))
+            self.nv.set_xinerama_info_order(self.screen, displays)
 
             # change to this mode using xrandr and refresh as id
             self._xrandr_switch(mmid)
@@ -201,6 +240,7 @@ class NVidiaSwitcher:
             # delete dangling metamodes and deassociate old
             self._cleanup_metamodes(displays)
             self._pop_display_association()
+            self.nv.set_xinerama_info_order(self.screen, oldxio)
             raise
 
         # delete dangling metamodes and deassociate old
@@ -317,6 +357,10 @@ class NVidiaSwitcher:
                     r = self.nv.delete_metamode(self.screen, mm)
                     if not r: self.log.warning('deletion of dangling metamode %d failed'%mm.id)
                     break
+        # nvidia-settings re-orders them, so do it here to be sure
+        metamodes = self.nv.get_metamodes(self.screen)
+        for i,mm in enumerate(metamodes):
+            self.nv.move_metamode(self.screen, mm, i)
 
     def set_scaling(self, displays, scaling):
         '''update the flat panel scaling mode if it was set previously by
