@@ -14,5 +14,6 @@
 # the terms and conditions of this license.
 
 from nvcmd import *
+from nvsettings import *
 
 # vim:ts=4:sw=4:expandtab:

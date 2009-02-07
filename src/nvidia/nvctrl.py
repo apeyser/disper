@@ -23,14 +23,13 @@
 import xnet
 import minx
 
+from nvtarget import *
+
 ###############################################################################
 # NV-CONTROL integer attrs. this list contains constants defined in both
 # NVCtrl.h and NVCtrlAttributes.h. these constants are the attr codes
 #
-NV_CTRL_TARGET_TYPE_X_SCREEN = 0
-NV_CTRL_TARGET_TYPE_GPU = 1
-NV_CTRL_TARGET_TYPE_FRAMELOCK = 2
-NV_CTRL_TARGET_TYPE_VCSC = 3
+# target types defined in nvtarget
 
 NV_CTRL_BUS_TYPE                        = 5   #/* R--G */
 NV_CTRL_VIDEO_RAM                       = 6   #/* R--G */
@@ -548,37 +547,6 @@ class _NVCtrlStringOperationReply:
         rs, ad = minx.decode(ad,
             minx.XData('STRING8',self.n,'string'))
         self.string = str(rs['string'])
-
-
-###############################################################################
-# Targets, to indicate where a command should be executed.
-#
-class Target:
-    _name = None
-    _id = None
-    _type = None
-
-    def id(self):
-        return self._id
-    def type(self):
-        return self._type
-    
-    def __str__(self):
-        return '<nVidia %s #%d>'%(self._name, self.id())
-
-class GPU(Target):
-    def __init__(self, ngpu=0):
-        '''Target a GPU'''
-        self._id = ngpu
-        self._type = NV_CTRL_TARGET_TYPE_GPU
-        self._name = 'GPU'
-
-class Screen(Target):
-    def __init__(self, nscr=0):
-        '''Target an X screen'''
-        self._id = nscr
-        self._type = NV_CTRL_TARGET_TYPE_X_SCREEN
-        self._name = 'X screen'
 
 
 ###############################################################################
