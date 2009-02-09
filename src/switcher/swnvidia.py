@@ -366,19 +366,34 @@ class NVidiaSwitcher:
         '''update the flat panel scaling mode if it was set previously by
         nvidia-settings. scaling must be one of: default, native, scaled, centered,
         aspect-scaled. Alternatively, scaling can be a list specifying the scaling
-        for each display separately.'''
+        for each display separately.
+        The default choice parses the nvidia-settings configuration file
+        ~/.nvidia-settings-rc to obtain the default value, or does nothing if that
+        fails. Note that nvidia-settings may or may not save this information from
+        the gui; both has been observed. The relevant option is 'GPUScaling'.'''
 
         # this fails if it's done for all of them at once, so do it separately
         for i,d in enumerate(displays):
+            xtrainfo=''
             curscaling = scaling
             if type(curscaling) == list: curscaling = curscaling[i]
             if curscaling=='default':
-                continue
+                try:
+                    sc = nvidia.NVidiaSettings().query(int, 'GPUScaling', None, d)
+                    if not sc: continue
+                    if sc==65537: curscaling='stretched'
+                    elif sc==65538: curscaling='centered'
+                    elif sc==65539: curscaling='aspect-scaled'
+                    else:
+                        self.log.warn('unrecognised scaling value for %s from nvidia-settings: %d'%(d,sc))
+                        continue
+                    xtrainfo=' (from nvidia-settings configuration)'
+                except IOError: continue
             if curscaling=='native':
-                self.log.info('setting scaling of display %s to %s'%(d, curscaling))
+                self.log.info('setting scaling of display %s to %s%s'%(d, curscaling, xtrainfo))
                 self.nv.set_gpu_scaling(self.screen, d, 'native', 'stretched')
             else:
-                self.log.info('setting scaling of display %s to %s'%(d, curscaling))
+                self.log.info('setting scaling of display %s to %s%s'%(d, curscaling, xtrainfo))
                 self.nv.set_gpu_scaling(self.screen, d, 'best-fit', curscaling)
 
     def get_scaling(self, displays):

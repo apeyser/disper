@@ -92,6 +92,7 @@ def main():
     if not options.direction: options.direction = "right"
     if not options.resolution: options.resolution = "auto"
     if not options.displays: options.displays = "auto"
+    if not options.scaling: options.scaling = "default"
     if not options.debug: options.debug = logging.WARNING
     logging.getLogger().setLevel(options.debug)
 
@@ -135,8 +136,7 @@ def main():
         # and switch
         sw.switch_clone(options.displays, resolution)
         # and apply scaling options if requested
-        if options.scaling:
-            sw.set_scaling(options.displays, options.scaling)
+        sw.set_scaling(options.displays, options.scaling)
 
     elif 'extend' in options.actions:
         # TODO rework this to code reorganisation
@@ -163,8 +163,7 @@ def main():
         # and switch
         sw.switch_extend(options.displays, options.direction, ress)
         # and apply scaling options if requested
-        if options.scaling:
-            sw.set_scaling(options.displays, options.scaling)
+        sw.set_scaling(options.displays, options.scaling)
         
     elif 'export' in options.actions:
         print sw.export_config()

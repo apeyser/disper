@@ -15,6 +15,7 @@
 
 _all = ['NVidiaSettings', 'Screen', 'GPU']
 
+import os
 import re
 import xnet
 import socket
@@ -73,7 +74,7 @@ class NVidiaSettings:
         if not target: target = Screen(0)
         # target: only current host for display
         d,host,dno,screen = xnet.get_X_display()
-        if not host: host='localhost'
+        if not host: host=socket.gethostname()
         host = socket.gethostbyname(host)
         if isinstance(target, Screen): screen = target.id()
         # throw away all options that aren't for us
