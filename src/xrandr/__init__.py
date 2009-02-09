@@ -91,7 +91,9 @@ def get_current_display():
 
 def get_current_screen():
     """Returns the currently used screen"""
-    screen = Screen(get_current_display())
+    dpy = get_current_display()
+    if not dpy: return None
+    screen = Screen(dpy)
     return screen
 
 def get_screen_of_display(display, count):
@@ -104,8 +106,9 @@ def get_version():
        extension or None if the extension is not available"""
     major = c_int()
     minor = c_int()
-    res = core.rr.XRRQueryVersion(get_current_display(),
-                             byref(major), byref(minor))
+    dpy = get_current_display()
+    if not dpy: return None
+    res = core.rr.XRRQueryVersion(dpy, byref(major), byref(minor))
     if res:
         return (major.value, minor.value)
     return None

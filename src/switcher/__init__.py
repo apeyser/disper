@@ -49,6 +49,9 @@ class Switcher:
         except SyntaxError: raise
         except: pass
 
+        if not self.backend:
+            raise Exception('No suitable backend found')
+
     ## the following methods must be defined by backends; see swnvidia.py
     ## for a complete example and an explanation of these methods
     #def get_displays(self):

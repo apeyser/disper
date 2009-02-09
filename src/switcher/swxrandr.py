@@ -24,6 +24,8 @@ class XRandrSwitcher:
     def __init__(self):
         self.log = logging.getLogger('xrandr')
         self.screen = xrandr.get_current_screen()
+        if not xrandr.has_extension():
+            raise Exception('No XRandR extension found')
 
 
     def get_displays(self):

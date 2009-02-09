@@ -23,7 +23,7 @@ from resolutions import *
 
 class NVidiaSwitcher:
 
-    nvidia = None
+    nv = None
     _display_associations = []
 
 
