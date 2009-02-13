@@ -4,7 +4,7 @@ Priority: optional
 Maintainer: Willem van Engen <dev-disper@willem.engen.nl>
 Build-Depends: debhelper (>= 4.1.67)
 Build-Depends-Indep: python-dev, python-support (>= 0.4)
-Standards-Version: 3.7.2
+Standards-Version: 3.8.0
 Homepage: http://willem.engen.nl/projects/disper/
 
 Package: disper

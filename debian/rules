@@ -5,7 +5,6 @@
 
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
-export DH_COMPAT=4
 export DH_OPTIONS
 
 build: build-stamp
