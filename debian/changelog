@@ -1,3 +1,17 @@
+disper (0.2.1) unstable; urgency=low
+
+  * New point release
+  * Detect DFP scaling from ~/.nvidia-settings-rc or override on command-line
+    (closes lp:#315139)
+  * Don't crash when DISPLAY is invalid (closes lp:#327133)
+  * Make panel placement consistent on switch by setting Xinerama details
+    (closes lp:#321288)
+  * Make switching between single displays work when they are disconnected at
+    the time of switch (not all cases are covered yet, laptops should be ok)
+    (closes lp:#315920)
+
+ -- Willem van Engen <dev-disper@willem.engen.nl>  Fri, 13 Feb 2009 16:47:52 +0100
+
 disper (0.2.0) unstable; urgency=low
 
   * New point release
