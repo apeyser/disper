@@ -278,9 +278,13 @@ class NVidiaSwitcher:
     def _set_associated_displays(self, displays):
         '''set the displays associated to the current X screen. Don't use this
         function directly, rather use both
-        _push_display_association() and _pop_display_association().'''
+        _push_display_association() and _pop_display_association().
+        The primary display is kept associated always to avoid problems when
+        switching from one single display device to another. [bug #315920]'''
         self.log.info('associating displays: %s'%(', '.join(displays)))
-        return self.nv.set_screen_associated_displays(self.screen, displays)
+        d = set(displays)
+        d.add(self.get_primary_display())
+        return self.nv.set_screen_associated_displays(self.screen, d)
 
 
     def _push_display_association(self, displays):
