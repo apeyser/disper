@@ -20,7 +20,11 @@ sys.path.append('#PREFIX#/share/disper/src')
 
 import cli
 
-logging.basicConfig(level=logging.WARNING, format='%(message)s')
+# Python 2.3 doesn't support arguments to basicConfig()
+try: logging.basicConfig(format='%(message)s')
+except: logging.basicConfig()
+logging.getLogger().setLevel(logging.WARNING)
+
 try:
     cli.main()
 except Exception,e:

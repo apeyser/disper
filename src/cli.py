@@ -48,7 +48,10 @@ def add_option(obj, *args, **kwargs):
 
 def main():
     '''main program entry point'''
-    logging.basicConfig(level=logging.WARNING, format='%(message)s')
+    # Python 2.3 doesn't support arguments to basicConfig()
+    try: logging.basicConfig(format='%(message)s')
+    except: logging.basicConfig()
+    logging.getLogger().setLevel(logging.WARNING)
     ### option defitions
     usage = "usage: %prog [options] (-l|-s|-c|-e|-p|-i)"
     version = ' '.join(map(str, [progname, progver]))
