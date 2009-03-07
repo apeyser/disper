@@ -41,9 +41,9 @@ class Resolution:
             pass
         elif type(val) == str:
             parts = val.split('@')
-            self.physical = map(int, parts[0].partition('x')[::2])
+            self.physical = map(int, parts[0].split('x',1))
             if len(parts)>1:
-                self.virtual = map(int, parts[1].partition('x')[::2])
+                self.virtual = map(int, parts[1].split('x',1))
         elif type(val) in [list,tuple]:
             if type(val[0]) in [list,tuple]:
                 self.physical,self.virtual = val

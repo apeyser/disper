@@ -15,6 +15,7 @@
 # the terms and conditions of this license.
 
 import sys
+import string
 import logging
 import optparse
 
@@ -24,6 +25,26 @@ import switcher
 progname = 'disper'
 progver = '0.2.1'
 
+# python version
+_pyvers = map(int, string.split(string.split(sys.version)[0], '.'))
+
+def add_option(obj, *args, **kwargs):
+    '''portable optarg add_option function that implements the append_const
+    action for Python versions below 2.5; has an extra first argument as
+    the object on which add_option should be called.'''
+    if _pyvers < [2,5] and 'action' in kwargs and \
+            kwargs['action'] == 'append_const':
+        # after: http://permalink.gmane.org/gmane.comp.python.optik.user/284
+        def append_const_cb(const):
+            def cb(opt, opt_str, value, parser):
+                if not getattr(parser.values, opt.dest):
+                    setattr(parser.values, opt.dest, list())
+                getattr(parser.values, opt.dest).append(const)
+            return cb
+        kwargs['action'] = 'callback'
+        kwargs['callback'] = append_const_cb(kwargs['const'])
+        del kwargs['const']
+    return obj.add_option(*args, **kwargs)
 
 def main():
     '''main program entry point'''
@@ -33,39 +54,39 @@ def main():
     version = ' '.join(map(str, [progname, progver]))
     parser = optparse.OptionParser(usage=usage, version=version)
 
-    parser.add_option('-v', '--verbose', action='store_const', dest='debug', const=logging.INFO,
+    add_option(parser, '-v', '--verbose', action='store_const', dest='debug', const=logging.INFO,
         help='show what\'s happening')
-    parser.add_option('-q', '--quiet', action='store_const', dest='debug', const=logging.ERROR,
+    add_option(parser, '-q', '--quiet', action='store_const', dest='debug', const=logging.ERROR,
         help='be quiet and only show errors')
-    parser.add_option('-r', '--resolution', dest='resolution',  
+    add_option(parser, '-r', '--resolution', dest='resolution',  
         help='set resolution, e.g. "800x600", or "auto" to detect the highest common '+
              'resolution. For extend it is possible to enter a single resolution for '+
              'all displays, or a comma-separated list of resolutions (one for each '+
              'display), or "max" to use the maximum resolution for each device. Beware '+
              'that many displays advertise resolutions they can not fully show, so '+
              '"max" is not advised.')
-    parser.add_option('-d', '--displays', dest='displays',
+    add_option(parser, '-d', '--displays', dest='displays',
         help='comma-separated list of displays to operate on, or "auto" to detect')
-    parser.add_option('-t', '--direction', dest='direction',
+    add_option(parser, '-t', '--direction', dest='direction',
         choices=['left','right','top','bottom'],
         help='where to extend displays: "left", "right", "top", or "bottom"')
-    parser.add_option('', '--scaling', dest='scaling',
+    add_option(parser, '', '--scaling', dest='scaling',
         choices=['default','native','scaled','centered','aspect-scaled'],
         help='flat-panel scaling mode: "default", "native", "scaled", "centered", or "aspect-scaled"')
 
     group = optparse.OptionGroup(parser, 'Actions',
         'Select exactly one of the following actions')
-    group.add_option('-l', '--list', action='append_const', const='list', dest='actions',
+    add_option(group, '-l', '--list', action='append_const', const='list', dest='actions',
         help='list the attached displays')
-    group.add_option('-s', '--single', action='append_const', const='single', dest='actions',
+    add_option(group, '-s', '--single', action='append_const', const='single', dest='actions',
         help='only enable the primary display')
-    group.add_option('-c', '--clone', action='append_const', const='clone', dest='actions',
+    add_option(group, '-c', '--clone', action='append_const', const='clone', dest='actions',
         help='clone displays')
-    group.add_option('-e', '--extend', action='append_const', const='extend', dest='actions',
+    add_option(group, '-e', '--extend', action='append_const', const='extend', dest='actions',
         help='extend displays')
-    group.add_option('-p', '--export', action='append_const', const='export', dest='actions',
+    add_option(group, '-p', '--export', action='append_const', const='export', dest='actions',
         help='export current settings to standard output')
-    group.add_option('-i', '--import', action='append_const', const='import', dest='actions',
+    add_option(group, '-i', '--import', action='append_const', const='import', dest='actions',
         help='import current settings from standard input')
     parser.add_option_group(group)
 

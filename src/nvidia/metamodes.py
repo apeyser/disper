@@ -121,7 +121,8 @@ class MetaMode:
         self.options = {}
         self.metamodes = []
         if not value: return
-        opts, sep, line = value.partition('::')
+        #opts, sep, line = value.partition('::') #python>=2.5
+        opts, line = (value.split('::',1)+['']*2)[:2]
         if not line:
             line = opts
             opts = None
@@ -129,7 +130,8 @@ class MetaMode:
         if opts:
             opts = map(lambda x: x.strip(), opts.split(','))
             for opt in opts:
-                key, sep, val = opt.partition('=')
+                #key, sep, val = opt.partition('=') # python>=2.5
+                key, val = (opt.split('=',1)+['']*2)[:2]
                 self.options[key] = val
             if 'id' in self.options:
                 self.id = int(self.options['id'])
