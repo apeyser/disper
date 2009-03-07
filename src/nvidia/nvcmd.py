@@ -100,7 +100,6 @@ class NVidiaControl(NVidiaControlLowLevel):
         "token=value" pairs, separated from the ModeLine string by "::". This
         "token=value" syntax is the same as that used in TODO'''
         dm = self.query_string_attribute( target, [], NV_CTRL_STRING_CURRENT_MODELINE)
-        if dm.string.endswith('\0'): dm.string = dm.string[:-1]
         return dm.string
 
     def GVO_supported(target):
@@ -210,7 +209,6 @@ class NVidiaControl(NVidiaControlLowLevel):
         This "token=value" syntax is the same as that used in
         get_metamodes().'''
         mm = self.query_string_attribute(target, [], NV_CTRL_STRING_CURRENT_METAMODE)
-        if mm.string.endswith('\0'): mm.string = mm.string[:-1]
         return MetaMode(mm.string)
 
     def get_metamodes(self, target):
