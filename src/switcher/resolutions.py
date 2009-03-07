@@ -13,6 +13,13 @@
 # By using, editing and/or distributing this software you agree to
 # the terms and conditions of this license.
 
+# define sorted() for Python 2.3 and below
+try: sorted(())
+except:
+    def sorted(obj):
+        lnew = type(obj)(obj)
+        lnew.sort()
+        return lnew
 
 class Resolution:
     '''a single resolution with a width, height, and a sort weight.
