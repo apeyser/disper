@@ -13,10 +13,10 @@
 # By using, editing and/or distributing this software you agree to
 # the terms and conditions of this license.
 
+import os
 import re
 import logging
 
-import xrandr
 import nvidia
 
 from resolutions import *
@@ -25,12 +25,20 @@ class NVidiaSwitcher:
 
     nv = None
     _display_associations = []
+    _switch_method = None
 
 
     def __init__(self):
         self.nv = nvidia.NVidiaControl()
         self.screen = nvidia.Screen(self.nv.xscreen)
         self.log = logging.getLogger('nVidia')
+        # either use XRandR module or command-line utility
+        try:
+            import xrandr
+            self._switch_method=self._xrandr_switch_mod
+        except:
+            self.info('using xrandr command instead of XRandR module')
+            self._switch_method=self._xrandr_switch_cmd
 
 
     def get_displays(self):
@@ -329,6 +337,11 @@ class NVidiaSwitcher:
         if not virtualres:
             mm = self.nv.get_metamodes(self.screen).find(mmid)
             virtualres = mm.bounding_size()
+        return self._switch_method(mmid, virtualres)
+
+    def _xrandr_switch_mod(self, mmid, virtualres):
+        '''_xrandr_switch that uses the xrandr python module'''
+        import xrandr
         screen = xrandr.get_current_screen()
         sizeidx = -1
         for i,s in enumerate(screen.get_available_sizes()):
@@ -344,6 +357,11 @@ class NVidiaSwitcher:
         logging.info('switching to metamode %d: [%d] %s / %s'%(mmid,sizeidx,res,mmid))
         screen.apply_config()
 
+    def _xrandr_switch_cmd(self, mmid, virtualres):
+        '''_xrandr_switch that uses the command 'xrandr' '''
+        cmd='xrandr -s %dx%d -r %d'%(virtualres[0],virtualres[1],mmid)
+        logging.info('switching to metamode %d: %s'%(mmid,cmd))
+        return os.system(cmd)
 
     def _cleanup_metamodes(self, displays):
         '''cleanup metamodes referencing displays that are not associated.
