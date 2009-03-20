@@ -37,7 +37,7 @@ class NVidiaSwitcher:
             import xrandr
             self._switch_method=self._xrandr_switch_mod
         except:
-            self.info('using xrandr command instead of XRandR module')
+            self.log.info('using xrandr command instead of XRandR module')
             self._switch_method=self._xrandr_switch_cmd
 
 
