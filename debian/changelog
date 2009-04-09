@@ -1,3 +1,12 @@
+disper (0.2.2) unstable; urgency=low
+
+  * New point release
+  * Work on older XRandR systems and workaround ctypes trouble (closes lp:#338978)
+  * Work on Python versions 2.3 and 2.4 as well
+  * Remove trailing zero from string query replies (closes lp:#337721)
+
+ -- Willem van Engen <dev-disper@willem.engen.nl>  Thu, 09 Apr 2009 21:38:32 +0200
+
 disper (0.2.1) unstable; urgency=low
 
   * New point release

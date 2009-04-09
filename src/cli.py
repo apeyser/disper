@@ -23,7 +23,7 @@ import switcher
 
 # program name and version
 progname = 'disper'
-progver = '0.2.1'
+progver = '0.2.2'
 
 # python version
 _pyvers = map(int, string.split(string.split(sys.version)[0], '.'))
