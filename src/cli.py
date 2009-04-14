@@ -15,7 +15,6 @@
 # the terms and conditions of this license.
 
 import sys
-import string
 import logging
 import optparse
 
@@ -25,14 +24,11 @@ import switcher
 progname = 'disper'
 progver = '0.2.2'
 
-# python version
-_pyvers = map(int, string.split(string.split(sys.version)[0], '.'))
-
 def add_option(obj, *args, **kwargs):
     '''portable optarg add_option function that implements the append_const
     action for Python versions below 2.5; has an extra first argument as
     the object on which add_option should be called.'''
-    if _pyvers < [2,5] and 'action' in kwargs and \
+    if sys.hexversion < 0x020500f0 and 'action' in kwargs and \
             kwargs['action'] == 'append_const':
         # after: http://permalink.gmane.org/gmane.comp.python.optik.user/284
         def append_const_cb(const):
