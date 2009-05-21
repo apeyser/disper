@@ -79,6 +79,8 @@ def main():
         help='list the attached displays')
     add_option(group, '-s', '--single', action='append_const', const='single', dest='actions',
         help='only enable the primary display')
+    add_option(group, '-S', '--secondary', action='append_const', const='secondary', dest='actions',
+        help='only enable the secondary display')
     add_option(group, '-c', '--clone', action='append_const', const='clone', dest='actions',
         help='clone displays')
     add_option(group, '-e', '--extend', action='append_const', const='extend', dest='actions',
@@ -126,6 +128,17 @@ def main():
         elif options.displays != [sw.get_primary_display()]:
             logging.warning('cloning specified displays instead of selecting primary display only')
         options.actions = ['clone']
+    elif 'secondary' in options.actions:
+        primary = sw.get_primary_display()
+        if options.displays == 'auto':
+            try:
+                options.displays = [x for x in sw.get_displays() if x != primary][0]
+            except IndexError:
+                logging.critical('No secondary display found')
+        elif options.displays == [primary]:
+            logging.warning('selecting the primary display for secondary display')
+        options.actions = ['clone']
+        
     if options.displays == 'auto':
         options.displays = sw.get_displays()
         logging.info('auto-detected displays: '+', '.join(options.displays))
