@@ -1,3 +1,11 @@
+disper (0.2.3) unstable; urgency=low
+
+  * New point release
+  * Make disper work with non-release Python versions (closes lp:#360100)
+  * Add option to switch to secondary screen (patch contributed by Arjan Scherpenisse)
+
+ -- Willem van Engen <dev-disper@willem.engen.nl>  Thu, 21 May 2009 12:25:09 +0200
+
 disper (0.2.2) unstable; urgency=low
 
   * New point release

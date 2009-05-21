@@ -22,7 +22,7 @@ import switcher
 
 # program name and version
 progname = 'disper'
-progver = '0.2.2'
+progver = '0.2.3'
 
 def add_option(obj, *args, **kwargs):
     '''portable optarg add_option function that implements the append_const
