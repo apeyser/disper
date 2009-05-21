@@ -8,7 +8,7 @@ beamer, which has just been connected, is able to show whatever you prepared.
 Disper gives you the option to either clone the all detected displays, or
 extend the desktop to them. Resolutions are automatically detected. For
 cloning, the highest resolution supported by all displays devices is chosen;
-for extending every display device gets its heighest supported resolution.
+for extending every display device gets its highest supported resolution.
 For special setups requiring more detailed control, one can still use the
 standard display configuration utilites.
 
