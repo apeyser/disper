@@ -27,6 +27,9 @@ logging.getLogger().setLevel(logging.WARNING)
 
 try:
     cli.main()
+except SystemExit:
+    # no error on sys.exit() for Python 2.4 and below
+    pass
 except Exception,e:
     logging.error(str(e))
     sys.exit(1)
