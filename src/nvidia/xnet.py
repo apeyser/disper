@@ -58,10 +58,10 @@ FamilyLocal     = 256
 class XConnectionError(Exception):
 
     def __init__(self,msg):
-        self.message = 'X CONNECTION ERROR: ' + msg
+        self.msg= 'X CONNECTION ERROR: ' + msg
 
     def __str__(self):
-        return self.message
+        return self.msg
 
 
 ###############################################################################
