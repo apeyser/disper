@@ -491,11 +491,11 @@ class Screen:
         self._root = xlib.XDefaultRootWindow(self._display, self._screen)
         self._id = rr.XRRRootToScreen(self._display, self._root)
         
-        self._load_resources()
         self._load_config()
         (self._width, self._height, 
          self._width_mm, self._height_mm) = self.get_size()
         if xrandr.get_version() >= (1,2):
+            self._load_resources()
             self._load_screen_size_range()
             self._load_crtcs()
             self._load_outputs()
