@@ -403,9 +403,9 @@ class NVidiaSwitcher:
                 try:
                     sc = nvidia.NVidiaSettings().query(int, 'GPUScaling', None, d)
                     if not sc: continue
-                    if sc==65537: curscaling='stretched'
-                    elif sc==65538: curscaling='centered'
-                    elif sc==65539: curscaling='aspect-scaled'
+                    if (sc&0xffff)==1: curscaling='stretched'
+                    elif (sc&0xffff)==2: curscaling='centered'
+                    elif (sc&0xffff)==3: curscaling='aspect-scaled'
                     else:
                         self.log.warn('unrecognised scaling value for %s from nvidia-settings: %d'%(d,sc))
                         continue
