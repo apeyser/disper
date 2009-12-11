@@ -91,7 +91,7 @@ class Switcher:
             r = ResolutionList('800x600, 640x480')
             self.log.warning('no resolutions found for display %s, falling back to: %s'%(disp, r))
         # bump weight of flat-panel display with 1000
-        res = self.backend.get_display_preferred_res(disp)
+        res = Resolution(self.backend.get_display_preferred_res(disp))
         if res:
             if res in r: r[r.index(res)].weight += 1000
             else: r.append(res)
