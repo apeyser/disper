@@ -18,7 +18,8 @@ import sys
 import logging
 import optparse
 
-import switcher
+from switcher import Switcher
+from hook import Hook
 
 # program name and version
 progname = 'disper'
@@ -72,6 +73,9 @@ def main():
     add_option(parser, '', '--scaling', dest='scaling',
         choices=['default','native','scaled','centered','aspect-scaled'],
         help='flat-panel scaling mode: "default", "native", "scaled", "centered", or "aspect-scaled"')
+    add_option(parser, '', '--hooks', dest='hooks',
+        help='comma-separated list of hooks to enable. Special names: "user" for all user hooks '+
+             'in ~/.disper/hooks; "all" for all hooks found')
 
     group = optparse.OptionGroup(parser, 'Actions',
         'Select exactly one of the following actions')
@@ -116,10 +120,15 @@ def main():
     if not options.displays: options.displays = "auto"
     if not options.scaling: options.scaling = "default"
     if not options.debug: options.debug = logging.WARNING
+    if options.hooks == None: options.hooks = "user"
     logging.getLogger().setLevel(options.debug)
 
     ### autodetect and apply options
-    sw = switcher.Switcher()
+    sw = Switcher()
+
+    hook = Hook(progver, sw)
+    options.hooks= map(lambda x: x.strip(), options.hooks.split(','))
+    hook.set_hooks(options.hooks)
 
     # determine displays involved
     if 'single' in options.actions:
@@ -170,6 +179,7 @@ def main():
         sw.switch_clone(options.displays, resolution)
         # and apply scaling options if requested
         sw.set_scaling(options.displays, options.scaling)
+        hook.call('switch')
 
     elif 'extend' in options.actions:
         # TODO rework this to code reorganisation
@@ -197,12 +207,14 @@ def main():
         sw.switch_extend(options.displays, options.direction, ress)
         # and apply scaling options if requested
         sw.set_scaling(options.displays, options.scaling)
+        hook.call('switch')
         
     elif 'export' in options.actions:
         print sw.export_config()
 
     elif 'import' in options.actions:
         sw.import_config('\n'.join(sys.stdin))
+        hook.call('switch')
 
     else:
         logging.critical('program error, unrecognised action: '+', '.join(options.actions))
