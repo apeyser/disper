@@ -66,7 +66,8 @@ def main():
              'that many displays advertise resolutions they can not fully show, so '+
              '"max" is not advised.')
     add_option(parser, '-d', '--displays', dest='displays',
-        help='comma-separated list of displays to operate on, or "auto" to detect')
+        help='comma-separated list of displays to operate on, or "auto" to detect; '+
+             'the first is the primary display.')
     add_option(parser, '-t', '--direction', dest='direction',
         choices=['left','right','top','bottom'],
         help='where to extend displays: "left", "right", "top", or "bottom"')
