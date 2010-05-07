@@ -1,12 +1,11 @@
-#!/usr/bin/env python
-###############################################################################
-# disper - executable wrapper for disper
+##############################################################################
+# __init__.py - disper plugin system
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 3 of the License, or
 # (at your option) any later version.
-#
+#        
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
@@ -15,23 +14,18 @@
 # the terms and conditions of this license.
 
 import logging
-import sys
-sys.path.append('#PREFIX#/share/disper/src')
+from hook import Hook
+from plugin import Plugin
 
-import disper
+class Plugins:
 
-# Python 2.3 doesn't support arguments to basicConfig()
-try: logging.basicConfig(format='%(message)s')
-except: logging.basicConfig()
-logging.getLogger().setLevel(logging.WARNING)
+    def __init__(self, disper):
+        '''Initialise the plugin system'''
+        self.log = logging.getLogger('plugins')
+        self.disper = disper
 
-try:
-    disper.main()
-except SystemExit:
-    # no error on sys.exit() for Python 2.4 and below
-    pass
-except Exception,e:
-    logging.error(str(e))
-    sys.exit(1)
+    def call(self, stage):
+        '''Call all plugins that are enabled'''
+        # TODO
 
 # vim:ts=4:sw=4:expandtab:
