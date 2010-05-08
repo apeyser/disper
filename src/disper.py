@@ -131,7 +131,7 @@ class Disper:
             self.parser.print_help()
             raise SystemExit(2)
         elif len(self.options.actions) > 1:
-            parser.error('conflicting actions, please specify exactly one action: '
+            self.parser.error('conflicting actions, please specify exactly one action: '
                          +', '.join(self.options.actions))
             raise SystemExit(2)
 

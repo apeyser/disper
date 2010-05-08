@@ -62,6 +62,16 @@ class Plugins:
                 plugins = newplugins
         # TODO should we only allow each plugin to be called once?
 
+        # remove and warn about nonexistant plugins
+        newplugins = []
+        for p in plugins:
+            if p in self._plugins.keys():
+                newplugins.append(p)
+            else:
+                self.log.warning('Ignoring nonexistent plugin: '+p)
+        plugins = newplugins
+
+        self.log.info('Enabled plugins: '+' '.join(plugins))
         self._plugin_names_enabled = plugins
 
     def _discover(self):
