@@ -31,6 +31,7 @@ class Disper:
     version = '0.2.3'
 
     # option parsing
+    argv = []
     parser = None           # option parser object
     options = None          # parsed options
     args = None             # parsed arguments
@@ -72,9 +73,9 @@ class Disper:
         self.add_option('', '--scaling', dest='scaling',
             choices=['default','native','scaled','centered','aspect-scaled'],
             help='flat-panel scaling mode: "default", "native", "scaled", "centered", or "aspect-scaled"')
-        self.add_option('', '--hooks', dest='hooks',
-            help='comma-separated list of hooks to enable. Special names: "user" for all user hooks '+
-                 'in ~/.disper/hooks; "all" for all hooks found')
+        self.add_option('', '--plugins', dest='plugins',
+            help='comma-separated list of plugins to enable. Special names: "user" for all user plugins '+
+                 'in ~/.disper/hooks; "all" for all plugins found')
 
         group = optparse.OptionGroup(self.parser, 'Actions',
             'Select exactly one of the following actions')
@@ -120,6 +121,7 @@ class Disper:
 
     def options_parse(self, args):
         '''parses the command-line options'''
+        self.argv = args
         (self.options, self.args) = self.parser.parse_args(args)
         # need exactly one action
         if not self.options.actions: self.options.actions = []
@@ -145,13 +147,14 @@ class Disper:
         if not self.options.displays: self.options.displays = "auto"
         if not self.options.scaling: self.options.scaling = "default"
         if not self.options.debug: self.options.debug = logging.WARNING
-        if self.options.hooks == None: self.options.hooks = "user"
+        if self.options.plugins == None: self.options.plugins = "user"
         logging.getLogger().setLevel(self.options.debug)
-        self.options.hooks = map(lambda x: x.strip(), self.options.hooks.split(','))
+        self.options.plugins = map(lambda x: x.strip(), self.options.plugins.split(','))
         if self.options.displays != 'auto':
             self.options.displays = map(lambda x: x.strip(), self.options.displays.split(','))
         if self.options.resolution not in ['auto', 'max']:
             self.options.resolution = map(lambda x: x.strip(), self.options.resolution.split(','))
+        self.plugins.set_enabled(self.options.plugins)
 
     def switch(self):
         '''Switch to configuration as specified in the options'''
@@ -238,6 +241,7 @@ class Disper:
             res = switcher.Resolution(resolution)
         # and switch
         result = self.switcher.switch_clone(displays, res)
+        self.plugins.set_layout_clone(displays, res)
         self.plugins.call('switch')
         return result
 
@@ -273,8 +277,11 @@ class Disper:
                 logging.critical('resolution: must specify either "auto", "max", a single value, or one for each display')
                 raise SystemExit(2)
             logging.info('selected resolutions for displays: '+str(ress))
+        # figure out direction
+        if not direction: direction = self.options.direction
         # and switch
         result = self.switcher.switch_extend(displays, direction, ress)
+        self.plugins.set_layout_extend(displays, direction, ress)
         self.plugins.call('switch')
         return result
 
@@ -288,7 +295,7 @@ class Disper:
 
 def main():
     disper = Disper()
-    disper.options_parse(sys.argv)
+    disper.options_parse(sys.argv[1:])
     disper.switch()
 
 if __name__ == "__main__":

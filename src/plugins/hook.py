@@ -13,20 +13,62 @@
 # By using, editing and/or distributing this software you agree to
 # the terms and conditions of this license.
 
+import os
 import logging
+import subprocess
 from plugin import Plugin
 
 class Hook(Plugin):
     '''A hook is a plugin that executes an external command'''
 
-    def __init__(self, disper):
-        self.super(disper)
+    def __init__(self, disper, script=None):
+        Plugin.__init__(self, disper)
+        if script: self.set_script(script)
         self._env = os.environ.copy()
         self._env['DISPER_VERSION'] = self.disper.version
 
+    def set_script(self, script):
+        '''set the script to execute'''
+        self._script = script
+
+    def set_layout_clone(self, displays, resolution):
+        displays = self._translate_displays(displays)
+        self._env['DISPER_DISPLAYS'] = ' '.join(displays)
+        self._env['DISPER_LAYOUT'] = 'clone'
+        self._env['DISPER_BB_RESOLUTION'] = str(resolution)
+        for d in displays:
+            self._env['DISPER_RESOLUTION_'+d] = str(resolution)
+            self._env['DISPER_POSITION_'+d] = '0,0'
+
+    def set_layout_extend(self, displays, layout, resolutions):
+        hdisplays = self._translate_displays(displays)
+        self._env['DISPER_DISPLAYS'] = ' '.join(hdisplays)
+        self._env['DISPER_LAYOUT'] = layout
+        bb = [0,0]
+        for i in range(len(displays)):
+            # TODO move computation to switcher/resolutions.py:ResolutionSelection
+            r = resolutions[displays[i]].size()
+            if layout in ['right','left']:
+                bb[0] += r[0]
+                bb[1] = max(bb[1], r[1])
+            else:
+                bb[1] += r[1]
+                bb[0] = max(bb[0], r[0])
+            self._env['DISPER_RESOLUTION_'+hdisplays[i]] = str(resolutions[displays[i]])
+            self._env['DISPER_POSITION_'+hdisplays[i]] = '' # TODO
+        self._env['DISPER_BB_RESOLUTION'] = 'x'.join(map(str, bb))
+
     def call(self, stage):
+        '''Call the hook'''
         self._env['DISPER_STAGE'] = stage
         self._env['DISPER_LOG_LEVEL'] = logging.getLogger().getEffectiveLevel().__str__()
+        cmd = [self._script] + self.disper.argv
+        logging.info('Executing hook: '+' '.join(cmd))
+        try: subprocess.Popen(cmd, env=self._env).wait()
+        except OSError as (errno,strerr): logging.warning('Could not execute hook '+self._script+': '+strerr)
 
+    def _translate_displays(self, displays):
+        '''replace invalid variable name characters for displays'''
+        return map(lambda d: d.replace('-','_'), displays)
 
 # vim:ts=4:sw=4:expandtab:
