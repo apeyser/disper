@@ -22,7 +22,7 @@ install: disper
 	$(INSTALL) -d $(DESTDIR)$(DATADIR)/src/plugins
 	$(INSTALL) -m644 src/plugins/*.py $(DESTDIR)$(DATADIR)/src/plugins
 	$(INSTALL) -d $(DESTDIR)$(DATADIR)/hooks
-	$(INSTALL) -m755 hooks/* $(DESTDIR)$(DATADIR)/hooks
+	[ -d hooks ] && $(INSTALL) -m755 hooks/* $(DESTDIR)$(DATADIR)/hooks || echo "No hooks to install"
 
 disper: disper.in
 	sed -e "s|#PREFIX#|$(PREFIX)|" <disper.in >disper
