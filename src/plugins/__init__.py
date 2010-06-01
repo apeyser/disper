@@ -93,9 +93,10 @@ class Plugins:
     def _get_executables(self, directory):
         '''Return full paths of executable files present in directory'''
         hooks = []
-        for f in os.listdir(directory):
-            path = os.path.join(directory, f)
-            if os.path.isfile(path): hooks.append(path)
+        if os.path.isdir(directory):
+            for f in os.listdir(directory):
+                path = os.path.join(directory, f)
+                if os.path.isfile(path): hooks.append(path)
         return hooks
 
 
