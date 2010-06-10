@@ -104,29 +104,41 @@ class XRandrSwitcher:
     def _switch(self, displays, ress, relation):
         '''switch displays to the specified resolution according to XRandR relation'''
         dprev = None
+        old_displays = self.get_displays()
         for d in displays:
-            res = ress[disp]
+            res = ress[d]
+            s = res.size()
             # for each display, select mode with highest refresh rate at res
             o = self.screen.get_output_by_name(d)
             modes = []
             for i,mode in enumerate(o.get_available_modes()):
-                if mode.width != res.width: continue
-                if mode.height != res.height: continue
+                if mode.width != s[0]: continue
+                if mode.height != s[1]: continue
                 refresh = mode.dotClock/(mode.hTotal*mode.vTotal)
                 modes.append([i, refresh])
             modes.sort(lambda x,y: x[1]-y[1])
             if len(modes) > 1:
                 self.log.info(str(d)+': available refresh rates for resolution '+
                     str(res)+': '+', '.join(map(lambda o: '%d'%(o[1]), modes)))
+            if len(modes) == 0:
+                raise ValueError('Mode %dx%d is invalid for display %s'%(s[0], s[1], d))
             mode = modes[-1]
             self.log.info(str(d)+': selecting XRandR mode #%d: %s %dHz'%(mode[0],res,mode[1]))
             o.set_to_mode(mode[0])
             if dprev:
                 o.set_relation(dprev, relation)
             dprev = d
+            if d in old_displays: old_displays.remove(d)
+            
+        if len(old_displays)>0:
+            for d in old_displays:
+                o = self.screen.get_output_by_name(d)
+                o.disable()
+        
         self.screen.apply_output_config()
 
     def set_scaling(self, displays, scaling):
+        if scaling == "default" : return
         raise NotImplementedError('scaling not implemented for XRandR')
 
 

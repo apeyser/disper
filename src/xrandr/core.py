@@ -272,7 +272,8 @@ class Output:
     def get_preferred_mode(self):
         """Returns an index that refers to the list of available modes and 
            points to the preferred mode of the connected device"""
-        return self._info.contents.npreferred
+        # NOTE: modes start with 1, while arrays start with 0, so subtract 1
+        return self._info.contents.npreferred - 1
 
     def is_active(self):
         """Returns True if the output is attached to a hardware pipe, is
@@ -579,7 +580,7 @@ class Screen:
         """Creates a X timestamp that must be used when applying changes, since
            they can be delayed"""
         config_timestamp = Time()
-        rr.XRRTimes.restpye = c_ulong
+        rr.XRRTimes.restype = c_ulong
         return rr.XRRTimes(self._display, self._id, byref(config_timestamp))
 
     def get_crtc_by_xid(self, xid):
@@ -800,8 +801,6 @@ class Screen:
         xrandr._check_required_version((1,2))
         self._arrange_outputs()
         self._calculate_size()
-        self.set_size(self._width, self._height,
-                      self._width_mm, self._height_mm)
 
         # Assign all active outputs to crtcs
         for output in self.outputs.values():
@@ -819,6 +818,14 @@ class Screen:
         for crtc in self.crtcs:
             if crtc.has_changed(): 
                 crtc.apply_changes()
+        
+        # Seems that this line should go here, because:
+        # "All active monitors must be configured to display a
+        # subset of the specified size, else a Match error results."
+        # (from XrandR protocol specification, 
+        # http://cgit.freedesktop.org/xorg/proto/randrproto/tree/randrproto.txt)
+        self.set_size(self._width, self._height,
+                      self._width_mm, self._height_mm)
 
     def apply_config(self):
         """Used for instantly applying RandR 1.0 changes"""
