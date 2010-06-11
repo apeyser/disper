@@ -28,7 +28,7 @@ class Disper:
 
     # program name and version
     name = 'disper'
-    version = '0.2.3'
+    version = '0.2.3.99'
 
     # option parsing
     argv = []
