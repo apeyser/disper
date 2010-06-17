@@ -125,11 +125,6 @@ class Disper:
         (self.options, self.args) = self.parser.parse_args(args)
         # need exactly one action
         if not self.options.actions: self.options.actions = []
-        if len(self.options.actions) == 0:
-            logging.info('no action specified')
-            # show help if no action specified
-            self.parser.print_help()
-            raise SystemExit(2)
         elif len(self.options.actions) > 1:
             self.parser.error('conflicting actions, please specify exactly one action: '
                          +', '.join(self.options.actions))
@@ -158,6 +153,11 @@ class Disper:
 
     def switch(self):
         '''Switch to configuration as specified in the options'''
+        if len(self.options.actions) == 0:
+            logging.info('no action specified')
+            # show help if no action specified
+            self.parser.print_help()
+            raise SystemExit(2)
         if 'single' in self.options.actions:
             if self.options.displays != 'auto':
                 logging.warning('specified displays ignored for single')
