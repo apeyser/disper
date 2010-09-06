@@ -22,7 +22,7 @@ from resolutions import *
 class XRandrSwitcher:
 
     def __init__(self):
-        self.log = logging.getLogger('xrandr')
+        self.log = logging.getLogger('disper.switcher.xrandr')
         self.screen = xrandr.get_current_screen()
         if not xrandr.has_extension():
             raise Exception('No XRandR extension found')

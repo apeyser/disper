@@ -30,6 +30,7 @@ class Hook(Plugin):
     def set_script(self, script):
         '''set the script to execute'''
         self._script = script
+        self.log = logging.getLogger('disper.plugin.hook.'+os.path.basename(script))
 
     def set_layout_clone(self, displays, resolution):
         displays = self._translate_displays(displays)
@@ -61,11 +62,11 @@ class Hook(Plugin):
     def call(self, stage):
         '''Call the hook'''
         self._env['DISPER_STAGE'] = stage
-        self._env['DISPER_LOG_LEVEL'] = logging.getLogger().getEffectiveLevel().__str__()
+        self._env['DISPER_LOG_LEVEL'] = self.log.getEffectiveLevel().__str__()
         cmd = [self._script] + self.disper.argv
-        logging.info('Executing hook: '+' '.join(cmd))
+        self.log.info('Executing hook: '+' '.join(cmd))
         try: subprocess.Popen(cmd, env=self._env).wait()
-        except OSError, e: logging.warning('Could not execute hook '+self._script+': '+ e.strerror)
+        except OSError, e: self.log.warning('Could not execute hook '+self._script+': '+ e.strerror)
 
     def _translate_displays(self, displays):
         '''replace invalid variable name characters for displays'''

@@ -26,7 +26,7 @@ class Switcher:
 
     def __init__(self):
         '''Initialise the switcher and find a backend'''
-        self.log = logging.getLogger('switcher')
+        self.log = logging.getLogger('disper.switcher')
         self._probe_backend()
 
     def _probe_backend(self):

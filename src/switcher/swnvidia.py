@@ -31,7 +31,7 @@ class NVidiaSwitcher:
     def __init__(self):
         self.nv = nvidia.NVidiaControl()
         self.screen = nvidia.Screen(self.nv.xscreen)
-        self.log = logging.getLogger('nVidia')
+        self.log = logging.getLogger('disper.switcher.nvidia')
         # either use XRandR module or command-line utility
         try:
             import xrandr

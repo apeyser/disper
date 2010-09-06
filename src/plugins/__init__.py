@@ -22,7 +22,7 @@ class Plugins:
 
     def __init__(self, disper):
         '''Initialise the plugin system'''
-        self.log = logging.getLogger('plugins')
+        self.log = logging.getLogger('disper.plugin')
         self.disper = disper
         self._discover()
         self._plugin_names_enabled = []

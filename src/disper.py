@@ -39,9 +39,11 @@ class Disper:
     # real work
     switcher = None         # switcher object
     plugins = None          # plugins object
-    
+    log = None
 
     def __init__(self):
+        self.log = logging.getLogger('disper')
+        self.log.setLevel(logging.WARNING)
         self._options_init()
         self.plugins = Plugins(self)
         #self.plugins.call('init') # can't really do here since list of plugins isn't read yet
@@ -132,9 +134,9 @@ class Disper:
 
         if 'import' in self.options.actions or 'export' in self.options.actions:
             if self.options.resolution:
-                logging.warning('specified resolution ignored for %s'%self.options.actions[0])
+                self.log.warning('specified resolution ignored for %s'%self.options.actions[0])
             if self.options.displays:
-                logging.warning('specified displays ignored for %s'%self.options.actions[0])
+                self.log.warning('specified displays ignored for %s'%self.options.actions[0])
 
         # apply defaults here to be able to detect if they were set explicitly or not
         if not self.options.direction: self.options.direction = "right"
@@ -143,7 +145,7 @@ class Disper:
         if not self.options.scaling: self.options.scaling = "default"
         if not self.options.debug: self.options.debug = logging.WARNING
         if self.options.plugins == None: self.options.plugins = "user"
-        logging.getLogger().setLevel(self.options.debug)
+        self.log.setLevel(self.options.debug)
         self.options.plugins = map(lambda x: x.strip(), self.options.plugins.split(','))
         if self.options.displays != 'auto':
             self.options.displays = map(lambda x: x.strip(), self.options.displays.split(','))
@@ -154,17 +156,17 @@ class Disper:
     def switch(self):
         '''Switch to configuration as specified in the options'''
         if len(self.options.actions) == 0:
-            logging.info('no action specified')
+            self.log.info('no action specified')
             # show help if no action specified
             self.parser.print_help()
             raise SystemExit(2)
         if 'single' in self.options.actions:
             if self.options.displays != 'auto':
-                logging.warning('specified displays ignored for single')
+                self.log.warning('specified displays ignored for single')
             self.switch_primary()
         elif 'secondary' in self.options.actions:
             if self.options.displays != 'auto':
-                logging.warning('specified displays ignored for secondary')
+                self.log.warning('specified displays ignored for secondary')
             self.switch_secondary()
         elif 'clone' in self.options.actions:
             self.switch_clone()
@@ -185,7 +187,7 @@ class Disper:
                 print 'display %s: %s'%(disp, self.switcher.get_display_name(disp))
                 print ' resolutions: '+str(res)
         else:
-            logging.critical('program error, unrecognised action: '+', '.join(self.options.actions))
+            self.log.critical('program error, unrecognised action: '+', '.join(self.options.actions))
             raise SystemExit(2)
 
     def switch_primary(self, res=None):
@@ -200,7 +202,7 @@ class Disper:
         try:
             display = [x for x in self.switcher.get_displays() if x != primary][0]
         except IndexError:
-            logging.critical('No secondary display found, falling back to primary.')
+            self.log.critical('No secondary display found, falling back to primary.')
             return self.switch_single(primary, res)
         return self.switch_single(display, res)
 
@@ -212,7 +214,7 @@ class Disper:
         if display == 'auto':
             display = self.switcher.get_primary_display()
         elif isinstance(display, list) and len(display)>1:
-            logging.warning('single output requested but multiple specified; using first one')
+            self.log.warning('single output requested but multiple specified; using first one')
             display = display[0]
         if res: res = [res]
         if display: display = [display]
@@ -226,15 +228,15 @@ class Disper:
         if not displays: displays = self.options.displays
         if displays == 'auto':
             displays = self.switcher.get_displays()
-            logging.info('auto-detected displays: '+', '.join(displays))
+            self.log.info('auto-detected displays: '+', '.join(displays))
         else:
-            logging.info('using specified displays: '+', '.join(displays))
+            self.log.info('using specified displays: '+', '.join(displays))
         # figure out resolutions
         if not res: res = self.options.resolution
         if res == 'auto':
             r = self.switcher.get_resolutions(displays).common()
             if len(r)==0:
-                logging.critical('displays share no common resolution')
+                self.log.critical('displays share no common resolution')
                 raise SystemExit(1)
             res = sorted(r)[-1]
         else:
@@ -254,9 +256,9 @@ class Disper:
         if not displays: displays = self.options.displays
         if displays == 'auto':
             displays = self.switcher.get_displays()
-            logging.info('auto-detected displays: '+', '.join(displays))
+            self.log.info('auto-detected displays: '+', '.join(displays))
         else:
-            logging.info('using specified displays: '+', '.join(displays))
+            self.log.info('using specified displays: '+', '.join(displays))
         # figure out resolutions
         if not ress: ress = self.options.resolution
         if ress == 'max':     # max resolution for each
@@ -265,18 +267,18 @@ class Disper:
             for rl in ress.values():
                 for r in rl: r.weight = 0
             ress = ress.select()
-            logging.info('maximum resolutions for displays: '+str(ress))
+            self.log.info('maximum resolutions for displays: '+str(ress))
         elif ress == 'auto':  # use preferred resolution for each
             ress = self.switcher.get_resolutions(displays).select()
-            logging.info('preferred resolutions for displays: '+str(ress))
+            self.log.info('preferred resolutions for displays: '+str(ress))
         else:                       # list of resolutions specified
             ress = self.switcher.ResolutionSelection(ress, displays)
             if len(ress)==1:
                 ress = ress * len(displays)
             elif len(ress) != len(displays):
-                logging.critical('resolution: must specify either "auto", "max", a single value, or one for each display')
+                self.log.critical('resolution: must specify either "auto", "max", a single value, or one for each display')
                 raise SystemExit(2)
-            logging.info('selected resolutions for displays: '+str(ress))
+            self.log.info('selected resolutions for displays: '+str(ress))
         # figure out direction
         if not direction: direction = self.options.direction
         # and switch
@@ -302,7 +304,6 @@ if __name__ == "__main__":
     # Python 2.3 doesn't support arguments to basicConfig()
     try: logging.basicConfig(format='%(message)s')
     except: logging.basicConfig()
-    logging.getLogger().setLevel(logging.WARNING)
     main()
 
 # vim:ts=4:sw=4:expandtab:

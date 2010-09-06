@@ -23,7 +23,8 @@ import disper
 # Python 2.3 doesn't support arguments to basicConfig()
 try: logging.basicConfig(format='%(message)s')
 except: logging.basicConfig()
-logging.getLogger().setLevel(logging.WARNING)
+logger = logging.getLogger('disper')
+logger.setLevel(logging.WARNING)
 
 try:
     disper.main()
