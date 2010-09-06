@@ -51,6 +51,8 @@ class Resolution:
             self.physical = map(int, parts[0].split('x',1))
             if len(parts)>1:
                 self.virtual = map(int, parts[1].split('x',1))
+            elif len(parts)>2:
+                raise TypeError('need zero or one virtual resolutions (@): '+val)
         elif type(val) in [list,tuple]:
             if type(val[0]) in [list,tuple]:
                 self.physical,self.virtual = val
@@ -58,6 +60,11 @@ class Resolution:
                 self.physical = val
         else:
             raise TypeError('invalid resolution: '+str(val))
+        # validate
+        if len(self.physical)!=2:
+            raise TypeError('invalid physical resolution in: '+str(val))
+        if self.virtual and len(self.virtual)!=2:
+            raise TypeError('invalid virtual resolution in: '+str(val))
         # make sure we have fixed type to avoid comparison trouble
         self.physical = tuple(self.physical)
         if self.virtual: self.virtual = tuple(self.virtual)

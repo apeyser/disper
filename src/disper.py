@@ -18,7 +18,7 @@ import sys
 import logging
 import optparse
 
-from switcher import Switcher
+from switcher import Switcher, Resolution, ResolutionSelection
 from plugins import Plugins
 
 
@@ -216,14 +216,13 @@ class Disper:
         elif isinstance(display, list) and len(display)>1:
             self.log.warning('single output requested but multiple specified; using first one')
             display = display[0]
-        if res: res = [res]
         if display: display = [display]
         return self.switch_clone(display, res)
 
     def switch_clone(self, displays=None, res=None):
         '''Clone displays.
            @param displays list of displays; or 'auto' for default or None for option
-           @param res resolution; or 'auto' for default or None to for option'''
+           @param res resolution; or 'auto' for default or None for option'''
         # figure out displays
         if not displays: displays = self.options.displays
         if displays == 'auto':
@@ -232,7 +231,11 @@ class Disper:
         else:
             self.log.info('using specified displays: '+', '.join(displays))
         # figure out resolutions
-        if not res: res = self.options.resolution
+        if not res:
+            res = self.options.resolution
+            if type(res)==list or type(res)==tuple:
+                if len(res) != 1: raise TypeError('need single resolution for clone')
+                res = res[0]
         if res == 'auto':
             r = self.switcher.get_resolutions(displays).common()
             if len(r)==0:
@@ -240,7 +243,7 @@ class Disper:
                 raise SystemExit(1)
             res = sorted(r)[-1]
         else:
-            res = switcher.Resolution(resolution)
+            res = Resolution(res)
         # and switch
         result = self.switcher.switch_clone(displays, res)
         self.plugins.set_layout_clone(displays, res)
@@ -272,7 +275,7 @@ class Disper:
             ress = self.switcher.get_resolutions(displays).select()
             self.log.info('preferred resolutions for displays: '+str(ress))
         else:                       # list of resolutions specified
-            ress = self.switcher.ResolutionSelection(ress, displays)
+            ress = ResolutionSelection(ress, displays)
             if len(ress)==1:
                 ress = ress * len(displays)
             elif len(ress) != len(displays):
