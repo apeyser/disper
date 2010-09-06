@@ -132,7 +132,7 @@ class NVidiaSwitcher:
 
     def import_config(self, cfg):
         '''restore a display configuration as exported by export_config()'''
-        backend = displays = mmline = scaling = None
+        backend = displays = mmline = scaling = xio = None
         for l in cfg.splitlines():
             key, sep, value = map(lambda s: s.strip(), l.partition(':'))
             if key == 'backend':
@@ -143,6 +143,8 @@ class NVidiaSwitcher:
                 mmline = value.strip()
             elif key == 'scaling':
                 scaling = map(lambda s: s.strip(), value.split(','))
+            elif key == 'xinerama info order':
+                xio = map(lambda s: s.strip(), value.split(','))
 
         if not backend:
             self.log.warning('no backend specified, assuming nvidia')
@@ -152,9 +154,9 @@ class NVidiaSwitcher:
             raise Exception('"associated displays" missing from configuration')
         if not mmline:
             raise Exception('"metamode" missing from configuration')
-        # scaling is optional
+        # scaling, xio is optional
 
-        self._switch(mmline, displays)
+        self._switch(mmline, displays, xio=xio)
 
         if scaling:
             if len(scaling) != len(displays):
@@ -177,10 +179,15 @@ class NVidiaSwitcher:
         # scaling mode of displays
         scalings = self.get_scaling(assocdisplays)
         cfg.append('scaling: ' + ', '.join(scalings))
+        # Xinerama info order
+        xio = filter(lambda x: x in assocdisplays, 
+            map(lambda s: s.strip(), 
+            self.nv.get_xinerama_info_order(self.screen).split(',')))
+        cfg.append('xinerama info order: ' + ", ".join(xio))
         return '\n'.join(cfg)
 
 
-    def _switch(self, mmline, displays, scaling=None):
+    def _switch(self, mmline, displays, scaling=None, xio=None):
         '''switch to the specified metamode. mmline is a MetaMode, displays
         a list of displays to use, and scaling an optional argument specifying
         the gpu scaling, which is either an array of two elements as returned
@@ -226,6 +233,10 @@ class NVidiaSwitcher:
             raise Exception('unconnected displays referenced, please connect: ' + \
                 ', '.join(unconndisplays))
 
+        # default xinerama info order
+        if not xio:
+            xio = displays
+
         # find or create MetaMode
         oldxio = self.nv.get_xinerama_info_order(self.screen)
         self._push_display_association(displays)
@@ -239,8 +250,8 @@ class NVidiaSwitcher:
                     raise Exception('could not find nor create MetaMode: %s'%mmline)
                 
             # set order before switch so it is detected
-            self.log.info('setting xinerama info order: '+', '.join(displays))
-            self.nv.set_xinerama_info_order(self.screen, displays)
+            self.log.info('setting xinerama info order: '+ ', '.join(xio))
+            self.nv.set_xinerama_info_order(self.screen, xio)
 
             # change to this mode using xrandr and refresh as id
             self._xrandr_switch(mmid)
