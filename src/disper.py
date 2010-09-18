@@ -331,7 +331,7 @@ class Disper:
             f.close()
         # apply next
         stage += 1
-        if stage > len(stages): stage = 0
+        if stage >= len(stages): stage = 0
         self.argv = filter(lambda x: x!='-C' and x!='--cycle', self.argv)
         self.options_parse(shlex.split(stages[stage]))
         # write new state to file
