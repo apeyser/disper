@@ -14,9 +14,11 @@
 # By using, editing and/or distributing this software you agree to
 # the terms and conditions of this license.
 
+import os
 import sys
 import logging
 import optparse
+import shlex
 
 from switcher import Switcher, Resolution, ResolutionSelection
 from plugins import Plugins
@@ -48,6 +50,16 @@ class Disper:
         self.plugins = Plugins(self)
         #self.plugins.call('init') # can't really do here since list of plugins isn't read yet
         self.switcher = Switcher()
+        # add default options
+        # TODO do initial parsing too so errors can be traced to config
+        conffile = os.path.join(os.getenv('HOME'), '.disper', 'config') 
+        if os.path.exists(conffile):
+            f = open(conffile, 'r')
+            opts = ''
+            for l in f.readlines():
+                opts += l.split('#',1)[0] + ' '
+            f.close()
+            self.options_append(shlex.split(opts))
 
     def _options_init(self):
         '''initialize default command-line options'''
@@ -78,6 +90,8 @@ class Disper:
         self.add_option('', '--plugins', dest='plugins',
             help='comma-separated list of plugins to enable. Special names: "user" for all user plugins '+
                  'in ~/.disper/hooks; "all" for all plugins found')
+        self.add_option('', '--cycle-stages', dest='cycle_stages',
+            help='colon-separated list command-line arguments to cycle through')
 
         group = optparse.OptionGroup(self.parser, 'Actions',
             'Select exactly one of the following actions')
@@ -95,6 +109,8 @@ class Disper:
             help='export current settings to standard output')
         self._add_option(group, '-i', '--import', action='append_const', const='import', dest='actions',
             help='import current settings from standard input')
+        self._add_option(group, '-C', '--cycle', action='append_const', const='cycle', dest='actions',
+            help='cycle through the list of cycle stages')
         self.parser.add_option_group(group)
 
 
@@ -121,10 +137,14 @@ class Disper:
         return obj.add_option(*args, **kwargs)
 
 
-    def options_parse(self, args):
-        '''parses the command-line options'''
-        self.argv = args
-        (self.options, self.args) = self.parser.parse_args(args)
+    def options_append(self, args):
+        '''parses command-line options; can be called multiple times'''
+        self.argv += args
+
+    def options_parse(self, args=None):
+        '''parses command-line options given; adds options to current list if set'''
+        if args: self.options_append(args)
+        (self.options, self.args) = self.parser.parse_args(self.argv)
         # need exactly one action
         if not self.options.actions: self.options.actions = []
         elif len(self.options.actions) > 1:
@@ -176,6 +196,8 @@ class Disper:
             print self.export_config()
         elif 'import' in self.options.actions:
             self.import_config('\n'.join(sys.stdin))
+        elif 'cycle' in self.options.actions:
+            self._cycle(self.options.cycle_stages.split(':'))
         elif 'list' in self.options.actions:
             # list displays with resolutions
             displays = self.options.displays
@@ -297,6 +319,27 @@ class Disper:
         result = self.switcher.import_config(data)
         self.plugins.call('switch')
         return result
+
+    def _cycle(self, stages):
+        # read last state
+        stage = 0
+        disperconf = os.path.join(os.getenv('HOME'), '.disper')
+        statefile = os.path.join(disperconf, 'last_cycle_stage')
+        if os.path.exists(statefile):
+            f = open(statefile, 'r')
+            stage = int(f.readline())
+            f.close()
+        # apply next
+        stage += 1
+        if stage > len(stages): stage = 0
+        self.argv = filter(lambda x: x!='-C' and x!='--cycle', self.argv)
+        self.options_parse(shlex.split(stages[stage]))
+        # write new state to file
+        if not os.path.exists(disperconf): os.mkdir(disperconf)
+        f = open(statefile, 'w')
+        f.write(str(stage)+'\n')
+        f.close()
+
 
 def main():
     disper = Disper()
