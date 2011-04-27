@@ -334,11 +334,15 @@ class Disper:
         if stage >= len(stages): stage = 0
         self.argv = filter(lambda x: x!='-C' and x!='--cycle', self.argv)
         self.options_parse(shlex.split(stages[stage]))
-        # write new state to file
-        if not os.path.exists(disperconf): os.mkdir(disperconf)
-        f = open(statefile, 'w')
-        f.write(str(stage)+'\n')
-        f.close()
+        try:
+            self.switch()
+        finally:
+            # write new state to file; do it here to make sure that a
+            # failing configuration doesn't block the cycling
+            if not os.path.exists(disperconf): os.mkdir(disperconf)
+            f = open(statefile, 'w')
+            f.write(str(stage)+'\n')
+            f.close()
 
 
 def main():
