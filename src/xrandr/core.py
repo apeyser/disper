@@ -442,7 +442,7 @@ class Crtc:
         elif self._info.contents.noutput > 0:
             if self._info.contents.x != output._x: return False
             if self._info.contents.y != output._y: return False
-            if self._info.contents.mode_info != output._mode: return False
+            if self._info.contents.mode != output._mode: return False
             if self._info.rotation != output._rotation: return False
         return True
 
