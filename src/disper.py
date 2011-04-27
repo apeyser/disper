@@ -244,7 +244,7 @@ class Disper:
     def switch_clone(self, displays=None, res=None):
         '''Clone displays.
            @param displays list of displays; or 'auto' for default or None for option
-           @param res resolution; or 'auto' for default or None for option'''
+           @param res resolution; or 'auto' for default, 'max' for max or None for option'''
         # figure out displays
         if not displays: displays = self.options.displays
         if displays == 'auto':
@@ -258,11 +258,13 @@ class Disper:
             if type(res)==list or type(res)==tuple:
                 if len(res) != 1: raise TypeError('need single resolution for clone')
                 res = res[0]
-        if res == 'auto':
+        if res == 'auto' or res == 'max':
             r = self.switcher.get_resolutions(displays).common()
             if len(r)==0:
                 self.log.critical('displays share no common resolution')
                 raise SystemExit(1)
+            if res == 'max': # ignore any preferred resolution
+                for s in r: s.weight = 0
             res = sorted(r)[-1]
         else:
             res = Resolution(res)
