@@ -89,7 +89,7 @@ class Disper:
             help='flat-panel scaling mode: "default", "native", "scaled", "centered", or "aspect-scaled"')
         self.add_option('', '--plugins', dest='plugins',
             help='comma-separated list of plugins to enable. Special names: "user" for all user plugins '+
-                 'in ~/.disper/hooks; "all" for all plugins found')
+                 'in ~/.disper/hooks; "all" for all plugins found; "none" for no plugins.')
         self.add_option('', '--cycle-stages', dest='cycle_stages',
             help='colon-separated list command-line arguments to cycle through')
 

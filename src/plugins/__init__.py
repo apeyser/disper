@@ -50,33 +50,24 @@ class Plugins:
                   to execute; or 'user' for all user-installed plugins or
                   'all' to include all user and system plugins or 'none' for none.'''
         if not isinstance(plugins, list): plugins = map(lambda x: x.strip(), ','.split(plugins))
-        # now expand 'user' and 'all' plugins
-        # TODO plugins is being modified while looping, this doesn't work; use separate output list
+        # now expand 'none', 'user' and 'all' plugins
+        useplugins = []
         for i in range(len(plugins)):
             if plugins[i] == 'none':
-                if len(plugins) > i+1: plugins = plugins[i+1:len(plugins)]
-                else: plugins = []
-            if plugins[i] == 'user':
-                newplugins = plugins[0:i] + self._plugins_user.keys()
-                if len(plugins) > i+1: newplugins += plugins[i+1:len(plugins)]
-                plugins = newplugins
+                useplugins = []
+            elif plugins[i] == 'user':
+                useplugins += self._plugins_user.keys()
             elif plugins[i] == 'all':
-                newplugins = plugins[0:i] + self._plugins.keys()
-                if len(plugins) > i+1: newplugins += plugins[i+1:len(plugins)]
-                plugins = newplugins
+                useplugins += self._plugins.keys()
+            elif plugins[i] in self._plugins.keys():
+                useplugins.append(plugins[i])
+            else:
+                self.log.warning('Ignoring nonexistant plugin: '+p)
+
         # TODO should we only allow each plugin to be called once?
 
-        # remove and warn about nonexistant plugins
-        newplugins = []
-        for p in plugins:
-            if p in self._plugins.keys():
-                newplugins.append(p)
-            else:
-                self.log.warning('Ignoring nonexistent plugin: '+p)
-        plugins = newplugins
-
-        self.log.info('Enabled plugins: '+' '.join(plugins))
-        self._plugin_names_enabled = plugins
+        self.log.info('Enabled plugins: '+' '.join(useplugins))
+        self._plugin_names_enabled = useplugins
 
     def _discover(self):
         '''Create lists of all plugins present'''
