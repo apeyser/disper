@@ -38,8 +38,9 @@ class Hook(Plugin):
         self._env['DISPER_LAYOUT'] = 'clone'
         self._env['DISPER_BB_RESOLUTION'] = str(resolution)
         for d in displays:
-            self._env['DISPER_RESOLUTION_'+d] = str(resolution)
-            self._env['DISPER_POSITION_'+d] = '0,0'
+           self._env['DISPER_RESOLUTION_'+d] = str(resolution)
+           # since we don't know it for extend, don't set it here either
+           #self._env['DISPER_POSITION_'+d] = '0,0'
 
     def set_layout_extend(self, displays, layout, resolutions):
         hdisplays = self._translate_displays(displays)
@@ -56,7 +57,8 @@ class Hook(Plugin):
                 bb[1] += r[1]
                 bb[0] = max(bb[0], r[0])
             self._env['DISPER_RESOLUTION_'+hdisplays[i]] = str(resolutions[displays[i]])
-            self._env['DISPER_POSITION_'+hdisplays[i]] = '' # TODO
+            # position is backend-dependant, we don't know it here :(
+            #self._env['DISPER_POSITION_'+hdisplays[i]] = ''
         self._env['DISPER_BB_RESOLUTION'] = 'x'.join(map(str, bb))
 
     def call(self, stage):

@@ -48,10 +48,14 @@ class Plugins:
         '''Set the plugins to be executed.
            @param plugins comma-separated list or Python list of plugin names
                   to execute; or 'user' for all user-installed plugins or
-                  'all' to include all user and system plugins.'''
+                  'all' to include all user and system plugins or 'none' for none.'''
         if not isinstance(plugins, list): plugins = map(lambda x: x.strip(), ','.split(plugins))
         # now expand 'user' and 'all' plugins
+        # TODO plugins is being modified while looping, this doesn't work; use separate output list
         for i in range(len(plugins)):
+            if plugins[i] == 'none':
+                if len(plugins) > i+1: plugins = plugins[i+1:len(plugins)]
+                else: plugins = []
             if plugins[i] == 'user':
                 newplugins = plugins[0:i] + self._plugins_user.keys()
                 if len(plugins) > i+1: newplugins += plugins[i+1:len(plugins)]
