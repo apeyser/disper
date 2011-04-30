@@ -25,6 +25,7 @@ install: disper disper.1
 	[ -d hooks ] && $(INSTALL) -m755 hooks/* $(DESTDIR)$(DATADIR)/hooks || echo "No hooks to install"
 	$(INSTALL) -d $(DESTDIR)$(PREFIX)/share/man/man1
 	$(INSTALL) -m444 disper.1 $(DESTDIR)$(PREFIX)/share/man/man1
+	$(INSTALL) -m644 disper.svg $(DESTDIR)$(PREFIX)/share/pixmaps
 
 disper: disper.in
 	sed -e "s|#PREFIX#|$(PREFIX)|" <disper.in >disper

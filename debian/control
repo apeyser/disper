@@ -10,6 +10,7 @@ Homepage: http://willem.engen.nl/projects/disper/
 Package: disper
 Architecture: all
 Depends: ${python:Depends}, libxrandr2, libx11-6
+Recommends: libnotify-bin
 Description: Display switcher for attaching/detaching displays easily
  No more headaches just before your presentation. Disper lets you add and
  remove display devices at the press of a button.  It detects what display
