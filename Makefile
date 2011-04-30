@@ -8,7 +8,7 @@ INSTALL = install
 
 all: disper disper.1
 
-install: disper disper.1
+install: disper disper.1 src/build.py.install
 	$(INSTALL) -d $(DESTDIR)$(BINDIR)
 	$(INSTALL) -m755 disper $(DESTDIR)$(BINDIR)
 	$(INSTALL) -d $(DESTDIR)$(DATADIR)/src
@@ -25,7 +25,15 @@ install: disper disper.1
 	[ -d hooks ] && $(INSTALL) -m755 hooks/* $(DESTDIR)$(DATADIR)/hooks || echo "No hooks to install"
 	$(INSTALL) -d $(DESTDIR)$(PREFIX)/share/man/man1
 	$(INSTALL) -m444 disper.1 $(DESTDIR)$(PREFIX)/share/man/man1
+	$(INSTALL) -d $(DESTDIR)$(PREFIX)/share/pixmaps
 	$(INSTALL) -m644 disper.svg $(DESTDIR)$(PREFIX)/share/pixmaps
+	# overwrite system-dependant settings file
+	$(INSTALL) -m644 -T src/build.py.install $(DESTDIR)$(DATADIR)/src/build.py
+
+src/build.py.install:
+	echo "# auto-generated build configuration" >src/build.py.install
+	echo "prefix='$(PREFIX)'" >>src/build.py.install
+	echo "prefix_share='$(PREFIX)/share/disper'" >>src/build.py.install
 
 disper: disper.in
 	sed -e "s|#PREFIX#|$(PREFIX)|" <disper.in >disper
@@ -43,7 +51,7 @@ disper.1.in: src/disper.py disper.1.extra
 	rm -f disper.1.tmp disper.1.tmp.1
 
 clean:
-	rm -f disper disper.1 disper.1.tmp disper.1.tmp.1
+	rm -f disper disper.1 disper.1.tmp disper.1.tmp.1 src/build.py.install
 	find . -name *.pyc -exec rm -f {} \;
 	find . -name *.pyo -exec rm -f {} \;
 	find . -name core -exec rm -f {} \;

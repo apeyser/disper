@@ -62,7 +62,7 @@ class Plugins:
             elif plugins[i] in self._plugins.keys():
                 useplugins.append(plugins[i])
             else:
-                self.log.warning('Ignoring nonexistant plugin: '+p)
+                self.log.warning('Ignoring nonexistant plugin: '+plugins[i])
 
         # TODO should we only allow each plugin to be called once?
 
@@ -72,13 +72,18 @@ class Plugins:
     def _discover(self):
         '''Create lists of all plugins present'''
         # TODO non-hook plugins
-        # find hooks
+        # find user hooks
         self._plugins_user = {}
         for uhook in self._get_executables(os.path.join(os.getenv('HOME'),'.disper','hooks')):
             name = os.path.splitext(os.path.split(uhook)[1])[0]
             self._plugins_user[name] = Hook(self.disper, uhook)
+        self.log.info('Available user hooks: '+', '.join(self._plugins_user))
+        # find system hooks
         self._plugins_system = {}
-        # TODO figure out prefix so we can find system plugins
+        for uhook in self._get_executables(os.path.join(self.disper.prefix_share, 'hooks')):
+            name = os.path.splitext(os.path.split(uhook)[1])[0]
+            self._plugins_system[name] = Hook(self.disper, uhook)
+        self.log.info('Available system hooks: '+', '.join(self._plugins_user))
 
         # Now create global list of plugins where user plugins get precedence
         self._plugins = {}

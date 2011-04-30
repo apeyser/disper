@@ -22,15 +22,17 @@ import shlex
 
 from switcher import Switcher, Resolution, ResolutionSelection
 from plugins import Plugins
-
+import build
 
 # make sure to handle SystemExit when using this class in a 3rd-party program
 
 class Disper:
 
-    # program name and version
+    # static information
     name = 'disper'
     version = '0.2.3.99'
+    prefix = build.prefix
+    prefix_share = build.prefix_share
 
     # option parsing
     argv = []
