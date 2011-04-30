@@ -16,7 +16,16 @@
 
 case "$DISPER_STAGE" in
 switch)
-	if [ "$DISPER_LAYOUT" = "clone" ]; then
+	numdisp=`echo "$DISPER_DISPLAYS" | wc -w`
+	if [ "$numdisp" -eq 1 ]; then
+		TITLE="Single display"
+		MESSAGE="$DISPER_DISPLAYS ($DISPER_BB_RESOLUTION)"
+		if [ "$DISPER_LAYOUT" = "clone" ]; then
+			TITLE="$TITLE (clone)"
+		else
+			TITLE="$TITLE (extend $DISPER_LAYOUT)"
+		fi
+	elif [ "$DISPER_LAYOUT" = "clone" ]; then
 		TITLE="Clone displays"
 		MESSAGE="$DISPER_DISPLAYS ($DISPER_BB_RESOLUTION)"
 	else
