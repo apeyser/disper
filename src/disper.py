@@ -72,12 +72,11 @@ class Disper:
         self.add_option('-q', '--quiet', action='store_const', dest='debug', const=logging.ERROR,
             help='be quiet and only show errors')
         self.add_option('-r', '--resolution', dest='resolution',  
-            help='set resolution, e.g. "800x600", or "auto" to detect the highest common '+
-                 'resolution. For extend it is possible to enter a single resolution for '+
-                 'all displays, or a comma-separated list of resolutions (one for each '+
-                 'display), or "max" to use the maximum resolution for each device. Beware '+
-                 'that many displays advertise resolutions they can not fully show, so '+
-                 '"max" is not advised.')
+            help='set resolution, e.g. "800x600", or "auto" to detect the display\'s preferred '+
+                 'resolution, or "max" to use the maximum resolution advertised. For extend it '+
+                 'is possible to enter a single resolution for all displays or a comma-separated '+
+                 'list of resolutions (one for each display). Beware that many displays advertise '+
+                 'resolutions they can not fully show, so "max" is not advised.')
         self.add_option('-d', '--displays', dest='displays',
             help='comma-separated list of displays to operate on, or "auto" to detect; '+
                  'the first is the primary display.')

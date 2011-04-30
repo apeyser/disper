@@ -33,7 +33,7 @@ disper.1: src/disper.py
 	help2man --name="on-the-fly display switcher" \
 		-N --section=1 --output=disper.1.tmp $<
 	perl -e '$$_=join("",<STDIN>);s/\.IP\s*Actions:\s*\.IP/.SH ACTIONS\n.TP/im;print' <disper.1.tmp >disper.1.tmp.1
-	cat disper.1.tmp.1 | sed 's/cli\.py/disper/g' >disper.1
+	cat disper.1.tmp.1 | sed 's/\(disper\|cli\)\.py/disper/g' >disper.1
 	rm -f disper.1.tmp disper.1.tmp.1
 
 clean:
