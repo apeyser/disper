@@ -1,0 +1,98 @@
+[description]
+Disper re-routes your screen output to one or more connected displays. For
+example when giving a presentation, all one wants is that the beamer, which has
+just been connected, is able to show whatever you prepared.
+.PP
+There is the option to either clone all detected displays, or extend the
+desktop to them. Resolutions are automatically detected by default. For
+cloning, the highest resolution supported by all displays devices is chosen;
+for extending every display device gets its preferred or highest supported
+resolution. For special setups requiring more detailed control, one can still
+use the vendor-supplied display configuration utilities.
+
+[cycle]
+There is a possibility to cycle between different setups with a single disper
+invocation using the option \fB--cycle\fR. The options to cycle through are
+specified by the option \fB--cycle-stages\fR, which consists of a
+colon-separated list of disper options. To alternate, for example, between
+clone and extend, one could use
+.RS
+.nf
+.B disper --cycle-stages='-e : -c' --cycle
+.fi
+.RE
+Currently the last selected stage is stored in the file
+\fI~/.disper/last_cycle_stage\fR. This means that when display configuration is
+modified by something else than disper (for example by restarting the
+computer), cycling will continue from where it was last time, not necessarily
+from the current display configuration. This is something that may change in
+the future.
+
+[plugins]
+It is possible to execute user-supplied hooks on display switch, for example to
+display a notification or change the wallpaper. Which ones are enabled is
+specified by the \fB\-\-plugins\fR option. System hooks are located in
+\fB#PREFIX#/share/disper/hooks/\fR while user hooks should be placed in
+\fB~/.disper/hooks/\fR.
+.PP
+Each hook is an executable file (which includes scripts). The following
+environment variables are available when invoked:
+.IP \fIDISPER_VERSION\fR
+Version of disper (#VERSION#).
+.IP \fIDISPER_LOG_LEVEL\fR
+Log level: 0 (quiet), 1 (normal) or 2 (verbose).
+.IP \fIDISPER_STAGE\fR 
+Execution stage: \fBprepare\fR or \fBswitch\fR. Most plugins will only need to
+act on the \fBswitch\fR stage, which is just after the display switch has
+happened. Please make sure to execute an action only on \fBswitch\fR for future
+compatibility. (There are ideas for \fBimport\fR and \fBexport\fR as well.)
+.IP \fIDISPER_DISPLAYS\fR
+Space-separated list of displays that have output. These names may be slightly
+different from what disper uses internally because they have to be valid
+environment variable names. (e.g. DFP_0 CRT_0)
+.IP \fIDISPER_LAYOUT\fR
+One of: \fBclone\fR, \fBtop\fR, \fBright\fR, \fBbottom\fR or \fBleft\fR.
+.IP \fIDISPER_BB_RESOLUTION\fR
+Size of full bounding box (e.g. 1024x768).
+.PP
+For each of \fIDISPER_DISPLAYS\fR the resolution of the corresponding display
+is supplied as well. If only DFP-0 would be attached, \fIDISPER_DISPLAYS\fR would
+contain just DFP_0 and the following variables would be set as well:
+.IP \fIDISPER_RESOLUTION_DFP_0\fR
+Resolution of display DFP-0 (e.g. 1024x768).
+.PP
+If you want to write your own hook you can also look at the ones supplied with
+disper in #PREFIX#/share/disper/hooks/.
+
+[files]
+.I ~/.disper/config
+.RS
+Default command-line options to include at each disper invocation. Multiple
+lines are concatenated, and lines starting with \fB#\fR are ignored. A typical
+example might include:
+.RS
+.nf
+# enable all plugins in ~/.disper/hooks
+--plugins=user
+# cycle over clone and extend
+--cycle-stages='-c : -e'
+.fi
+.RE
+.RE
+.I ~/.disper/hooks/
+.RS
+Directory containing user hooks. These can be enabled with the
+\fB\-\-plugins\fR option.
+.RE
+.I #PREFIX#/share/disper/hooks/
+.RS
+Directory containing system hooks. User hooks take preference of system hooks
+or plugins.
+.RE
+
+[see also]
+.BR xrandr (1),
+.BR nvidia-settings (1)
+
+[author]
+Written by Willem van Engen.

@@ -27,17 +27,20 @@ install: disper
 disper: disper.in
 	sed -e "s|#PREFIX#|$(PREFIX)|" <disper.in >disper
 
+disper.1: disper.1.in
+	sed -e "s|#PREFIX#|$(PREFIX)|;s|#VERSION#|`src/disper.py --version|sed 's|^\w\+\s*||'`|" <disper.1.in >disper.1
+
 # run this after changing command-line options in src/cli.py
 # afterwards the file can be committed to the repository
-disper.1: src/disper.py
-	help2man --name="on-the-fly display switcher" \
+disper.1.in: src/disper.py disper.1.extra
+	help2man --name="on-the-fly display switcher" --include=disper.1.extra \
 		-N --section=1 --output=disper.1.tmp $<
 	perl -e '$$_=join("",<STDIN>);s/\.IP\s*Actions:\s*\.IP/.SH ACTIONS\n.TP/im;print' <disper.1.tmp >disper.1.tmp.1
-	cat disper.1.tmp.1 | sed 's/\(disper\|cli\)\.py/disper/g' >disper.1
+	cat disper.1.tmp.1 | sed 's/\(disper\|cli\)\.py/disper/g' >disper.1.in
 	rm -f disper.1.tmp disper.1.tmp.1
 
 clean:
-	rm -f disper disper.1.tmp disper.1.tmp.1
+	rm -f disper disper.1 disper.1.tmp disper.1.tmp.1
 	find . -name *.pyc -exec rm -f {} \;
 	find . -name *.pyo -exec rm -f {} \;
 	find . -name core -exec rm -f {} \;
