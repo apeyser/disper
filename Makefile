@@ -6,9 +6,9 @@ DATADIR = $(PREFIX)/share/disper
 
 INSTALL = install
 
-all: disper
+all: disper disper.1
 
-install: disper
+install: disper disper.1
 	$(INSTALL) -d $(DESTDIR)$(BINDIR)
 	$(INSTALL) -m755 disper $(DESTDIR)$(BINDIR)
 	$(INSTALL) -d $(DESTDIR)$(DATADIR)/src
@@ -23,6 +23,8 @@ install: disper
 	$(INSTALL) -m644 src/plugins/*.py $(DESTDIR)$(DATADIR)/src/plugins
 	$(INSTALL) -d $(DESTDIR)$(DATADIR)/hooks
 	[ -d hooks ] && $(INSTALL) -m755 hooks/* $(DESTDIR)$(DATADIR)/hooks || echo "No hooks to install"
+	$(INSTALL) -d $(DESTDIR)$(PREFIX)/share/man/man1
+	$(INSTALL) -m444 disper.1 $(DESTDIR)$(PREFIX)/share/man/man1
 
 disper: disper.in
 	sed -e "s|#PREFIX#|$(PREFIX)|" <disper.in >disper
