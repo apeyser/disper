@@ -904,7 +904,7 @@ class Screen:
                           (width, height), (self._width_max, self._width_min))
         else:
             if height < self._height_min: 
-                self._fb_height = self._height_min
+                self._height = self._height_min
             else:
                 self._height = height
             if width < self._width_min: 
