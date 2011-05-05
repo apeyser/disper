@@ -1,3 +1,13 @@
+disper (0.3.0) unstable; urgency=low
+
+  * New major release
+  * Hook functionality in ~/.disper/hooks and /usr/share/disper/hooks
+  * Default configuration in ~/.disper/config
+  * Allow "max" resolution for clone
+  * A number of small bug fixes.
+
+ -- Willem van Engen <dev-disper@willem.engen.nl>  Thu, 05 May 2011 13:27:36 +0200
+
 disper (0.2.3) unstable; urgency=low
 
   * New point release
