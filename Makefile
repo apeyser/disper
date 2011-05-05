@@ -43,8 +43,8 @@ disper.1: disper.1.in
 
 # run this after changing command-line options in src/cli.py
 # afterwards the file can be committed to the repository
-disper.1.in: src/disper.py disper.1.extra
-	help2man --name="on-the-fly display switcher" --include=disper.1.extra \
+disper.1.in: src/disper.py disper.1.in.in
+	help2man --name="on-the-fly display switcher" --include=disper.1.in.in \
 		-N --section=1 --output=disper.1.tmp $<
 	perl -e '$$_=join("",<STDIN>);s/\.IP\s*Actions:\s*\.IP/.SH ACTIONS\n.TP/im;print' <disper.1.tmp >disper.1.tmp.1
 	cat disper.1.tmp.1 | sed 's/\(disper\|cli\)\.py/disper/g' >disper.1.in
