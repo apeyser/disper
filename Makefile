@@ -1,6 +1,6 @@
 # simple Makefile for disper
 
-PREFIX = /usr
+PREFIX = /usr/local
 BINDIR = $(PREFIX)/bin
 DATADIR = $(PREFIX)/share/disper
 
