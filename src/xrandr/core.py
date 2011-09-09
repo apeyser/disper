@@ -300,6 +300,7 @@ class Output:
         modes = self.get_available_modes()
         if mode in range(len(modes)):
             self._mode = modes[mode].id
+            self._changes = self._changes | xrandr.CHANGES_MODE
             return
         raise RRError("Mode is not available")
 
@@ -309,6 +310,7 @@ class Output:
         mode = modes[self.get_preferred_mode()]
         if mode != None:
             self._mode = mode.id
+            self._changes = self._changes | xrandr.CHANGES_MODE
             return
         raise RRError("Preferred mode is not available")
 
@@ -850,8 +852,7 @@ class Screen:
             if not relative or not relative._mode:
                 output._x = 0
                 output._y = 0
-                output._changes = output._changes | xrandr.CHANGES_POSITION
-            if output._relation == xrandr.RELATION_LEFT_OF:
+            elif output._relation == xrandr.RELATION_LEFT_OF:
                 output._y = relative._y + output._relation_offset
                 output._x = relative._x - \
                             get_mode_width(mode, output._rotation)
@@ -871,7 +872,7 @@ class Screen:
                 output._y = relative._y + output._relation_offset
                 output._x = relative._x + output._relation_offset
             output._changes = output._changes | xrandr.CHANGES_POSITION
-        # Normalize the postions so to the upper left cornor of all outputs 
+        # Normalize the positions so to the upper left corner of all outputs 
         # is at 0,0
         min_x = 32768
         min_y = 32768
@@ -879,11 +880,12 @@ class Screen:
             if output._mode == None: continue
             if output._x < min_x: min_x = output._x
             if output._y < min_y: min_y = output._y
-        for output in self.get_outputs():
-            if output._mode == None: continue
-            output._x -= min_x
-            output._y -= min_y
-            output._changes = output._changes | xrandr.CHANGES_POSITION
+        if min_x != 0 or min_y != 0:
+            for output in self.get_outputs():
+                if output._mode == None: continue
+                output._x -= min_x
+                output._y -= min_y
+                output._changes = output._changes | xrandr.CHANGES_POSITION
 
     def _calculate_size(self):
         """Recalculate the pixel and physical size of the screen so that
