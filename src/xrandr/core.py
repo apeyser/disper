@@ -469,6 +469,17 @@ class Crtc:
             if output.has_changed(): return True
         return False
 
+    def fits_size(self, width, height):
+        """Checks if the active configuration fits within the given 
+           dimensions"""
+        current = self._info.contents
+        if not current.mode: return True
+        mode = self._screen.get_mode_by_xid(current.mode)
+        if current.x + get_mode_width(mode, current.rotation) > width or \
+           current.y + get_mode_height(mode, current.rotation) > height:
+            return False
+        return True
+
 class Screen:
     def __init__(self, dpy, screen=-1):
         """Initializes the screen"""
@@ -816,18 +827,18 @@ class Screen:
                 #FIXME: Take a look at the pick_crtc code in xrandr.c
                 raise RRError("There is no matching crtc for the output")
 
+        # Disable any crtcs whose size won't fit the new one
+        for crtc in self.crtcs:
+            if not crtc.fits_size(self._width, self._height):
+                crtc.disable()
+
+        self.set_size(self._width, self._height,
+                      self._width_mm, self._height_mm)
+
         # Apply stored changes of crtcs
         for crtc in self.crtcs:
             if crtc.has_changed(): 
                 crtc.apply_changes()
-        
-        # Seems that this line should go here, because:
-        # "All active monitors must be configured to display a
-        # subset of the specified size, else a Match error results."
-        # (from XrandR protocol specification, 
-        # http://cgit.freedesktop.org/xorg/proto/randrproto/tree/randrproto.txt)
-        self.set_size(self._width, self._height,
-                      self._width_mm, self._height_mm)
 
     def apply_config(self):
         """Used for instantly applying RandR 1.0 changes"""
