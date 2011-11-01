@@ -12,8 +12,8 @@ for extending every display device gets its highest supported resolution.
 For special setups requiring more detailed control, one can still use the
 standard display configuration utilites.
 
-At the moment only nVidia cards are supported. I'm still looking for a laptop
-that supports XRandR 1.2 completely to develop an XRandR backend.
+At the moment nVidia cards have the best support. XRandR is working, though
+import/export is not complete. Contributions are welcome in this area.
 
 Generally, one would bind 'disper -c' to a shortcut key (or if you rather
 like to extend your desktop, use 'disper -e'). Without an external display
@@ -24,8 +24,8 @@ you configured it that way).
 In the future a graphical user interface may be added. For now I hope that it'll
 save you some time at the beginning of presentations.
 
-The development of this program was supported Frans and Linda Reijnhoudt.
-A big thanks to them!
+The initial development of this program was supported Frans and Linda
+Reijnhoudt. A big thanks to them!
 
 http://willem.engen.nl/projects/disper/
 
