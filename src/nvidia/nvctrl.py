@@ -427,7 +427,7 @@ class _NVCtrlQueryStringAttributeReply:
         rs, ad = minx.decode(ad,
             minx.XData('STRING8',self.n,'string'))
         self.string = str(rs['string'])
-        if self.string.endswith('\0'): self.string = self.string[:-1]
+        if self.string is not None and self.string.endswith('\0'): self.string = self.string[:-1]
 
 
 ###############################################################################

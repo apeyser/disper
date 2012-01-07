@@ -75,10 +75,11 @@ class Disper:
             help='be quiet and only show errors')
         self.add_option('-r', '--resolution', dest='resolution',  
             help='set resolution, e.g. "800x600", or "auto" to detect the display\'s preferred '+
-                 'resolution, or "max" to use the maximum resolution advertised. For extend it '+
-                 'is possible to enter a single resolution for all displays or a comma-separated '+
-                 'list of resolutions (one for each display). Beware that many displays advertise '+
-                 'resolutions they can not fully show, so "max" is not advised.')
+                 'resolution, "max" to use the maximum resolution advertised, or "off" to disable '+
+                 'the display entirely. For extend it is possible to enter a single resolution for '+
+                 'all displays or a comma-separated list of resolutions (one for each display). '+
+                 'Beware that many displays advertise resolutions they can not fully show, '+
+                 'so "max" is not advised.')
         self.add_option('-d', '--displays', dest='displays',
             help='comma-separated list of displays to operate on, or "auto" to detect; '+
                  'the first is the primary display.')
@@ -170,7 +171,7 @@ class Disper:
         self.options.plugins = map(lambda x: x.strip(), self.options.plugins.split(','))
         if self.options.displays != 'auto':
             self.options.displays = map(lambda x: x.strip(), self.options.displays.split(','))
-        if self.options.resolution not in ['auto', 'max']:
+        if self.options.resolution not in ['auto', 'max', 'off']:
             self.options.resolution = map(lambda x: x.strip(), self.options.resolution.split(','))
         self.plugins.set_enabled(self.options.plugins)
 
@@ -245,7 +246,8 @@ class Disper:
     def switch_clone(self, displays=None, res=None):
         '''Clone displays.
            @param displays list of displays; or 'auto' for default or None for option
-           @param res resolution; or 'auto' for default, 'max' for max or None for option'''
+           @param res resolution; or 'auto' for default, 'max' for max, 'off' to disable
+                  the display, 'none' or None for option'''
         # figure out displays
         if not displays: displays = self.options.displays
         if displays == 'auto':
@@ -259,7 +261,7 @@ class Disper:
             if type(res)==list or type(res)==tuple:
                 if len(res) != 1: raise TypeError('need single resolution for clone')
                 res = res[0]
-        if res == 'auto' or res == 'max':
+        if res in ['auto', 'max']:
             r = self.switcher.get_resolutions(displays).common()
             if len(r)==0:
                 self.log.critical('displays share no common resolution')
