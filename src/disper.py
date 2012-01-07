@@ -54,14 +54,7 @@ class Disper:
         self.switcher = Switcher()
         # add default options
         # TODO do initial parsing too so errors can be traced to config
-        conffile = os.path.join(os.getenv('HOME'), '.disper', 'config') 
-        if os.path.exists(conffile):
-            f = open(conffile, 'r')
-            opts = ''
-            for l in f.readlines():
-                opts += l.split('#',1)[0] + ' '
-            f.close()
-            self.options_append(shlex.split(opts))
+        self.options_append(self.config_read_default())
 
     def _options_init(self):
         '''initialize default command-line options'''
@@ -174,6 +167,28 @@ class Disper:
         if self.options.resolution not in ['auto', 'max', 'off']:
             self.options.resolution = map(lambda x: x.strip(), self.options.resolution.split(','))
         self.plugins.set_enabled(self.options.plugins)
+
+    def config_read_default(self):
+        '''Return default options from configuration files'''
+        # Read old-style and XDG-style configuration files
+        home = os.environ.get('HOME', '/')
+        xdg_config_dirs = [os.path.join(home, '.disper')] + \
+                          [os.environ.get('XDG_CONFIG_HOME', os.path.join(home, '.config', 'disper'))] + \
+                          os.environ.get('XDG_CONFIG_DIRS', '/etc/xdg/disper').split(':')
+        xdg_config_dirs = filter(lambda x: x and os.path.exists(x), xdg_config_dirs)
+        # since later configuration files override previous ones, reverse order of reading
+        # TODO allow override of action, since multiple actions would now conflict
+        xdg_config_dirs = reversed(xdg_config_dirs)
+        opts = ''
+        for d in xdg_config_dirs:
+            conffile = os.path.join(d, 'config')
+            if not os.path.exists(conffile): continue
+            f = open(conffile, 'r')
+            opts = ''
+            for l in f.readlines():
+                opts += l.split('#',1)[0] + ' '
+            f.close()
+        return shlex.split(opts)
 
     def switch(self):
         '''Switch to configuration as specified in the options'''
@@ -328,6 +343,7 @@ class Disper:
     def _cycle(self, stages):
         # read last state
         stage = 0
+        # TODO use X root window hint instead of file (which doesn't adhere to XDG)
         disperconf = os.path.join(os.getenv('HOME'), '.disper')
         statefile = os.path.join(disperconf, 'last_cycle_stage')
         if os.path.exists(statefile):
