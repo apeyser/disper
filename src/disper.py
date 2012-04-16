@@ -41,7 +41,7 @@ class Disper:
     args = None             # parsed arguments
 
     # real work
-    switcher = None         # switcher object
+    _switcher = None        # switcher object, see Disper.switcher()
     plugins = None          # plugins object
     log = None
 
@@ -51,7 +51,6 @@ class Disper:
         self._options_init()
         self.plugins = Plugins(self)
         #self.plugins.call('init') # can't really do here since list of plugins isn't read yet
-        self.switcher = Switcher()
         # add default options
         # TODO do initial parsing too so errors can be traced to config
         self.options_append(self.config_read_default())
@@ -219,11 +218,11 @@ class Disper:
             # list displays with resolutions
             displays = self.options.displays
             if displays == 'auto':
-                displays = self.switcher.get_displays()
+                displays = self.switcher().get_displays()
             for disp in displays:
-                res = self.switcher.get_resolutions_display(disp)
+                res = self.switcher().get_resolutions_display(disp)
                 res.sort()
-                print 'display %s: %s'%(disp, self.switcher.get_display_name(disp))
+                print 'display %s: %s'%(disp, self.switcher().get_display_name(disp))
                 print ' resolutions: '+str(res)
         else:
             self.log.critical('program error, unrecognised action: '+', '.join(self.options.actions))
@@ -232,14 +231,14 @@ class Disper:
     def switch_primary(self, res=None):
         '''Only enable primary display.
            @param res resolution to use; or 'auto' for default or None for option'''
-        return self.switch_single(self.switcher.get_primary_display())
+        return self.switch_single(self.switcher().get_primary_display())
 
     def switch_secondary(self, res=None):
         '''Only enable secondary display.
            @param res resolution to use; or 'auto' for default or None for option'''
-        primary = self.switcher.get_primary_display()
+        primary = self.switcher().get_primary_display()
         try:
-            display = [x for x in self.switcher.get_displays() if x != primary][0]
+            display = [x for x in self.switcher().get_displays() if x != primary][0]
         except IndexError:
             self.log.critical('No secondary display found, falling back to primary.')
             return self.switch_single(primary, res)
@@ -251,7 +250,7 @@ class Disper:
            @param res resolution to use; or 'auto' for default or None for option'''
         if not display: display = self.options.displays
         if display == 'auto':
-            display = self.switcher.get_primary_display()
+            display = self.switcher().get_primary_display()
         elif isinstance(display, list) and len(display)>1:
             self.log.warning('single output requested but multiple specified; using first one')
             display = display[0]
@@ -266,7 +265,7 @@ class Disper:
         # figure out displays
         if not displays: displays = self.options.displays
         if displays == 'auto':
-            displays = self.switcher.get_displays()
+            displays = self.switcher().get_displays()
             self.log.info('auto-detected displays: '+', '.join(displays))
         else:
             self.log.info('using specified displays: '+', '.join(displays))
@@ -277,7 +276,7 @@ class Disper:
                 if len(res) != 1: raise TypeError('need single resolution for clone')
                 res = res[0]
         if res in ['auto', 'max']:
-            r = self.switcher.get_resolutions(displays).common()
+            r = self.switcher().get_resolutions(displays).common()
             if len(r)==0:
                 self.log.critical('displays share no common resolution')
                 raise SystemExit(1)
@@ -287,7 +286,7 @@ class Disper:
         else:
             res = Resolution(res)
         # and switch
-        result = self.switcher.switch_clone(displays, res)
+        result = self.switcher().switch_clone(displays, res)
         self.plugins.set_layout_clone(displays, res)
         self.plugins.call('switch')
         return result
@@ -300,7 +299,7 @@ class Disper:
         # figure out displays
         if not displays: displays = self.options.displays
         if displays == 'auto':
-            displays = self.switcher.get_displays()
+            displays = self.switcher().get_displays()
             self.log.info('auto-detected displays: '+', '.join(displays))
         else:
             self.log.info('using specified displays: '+', '.join(displays))
@@ -308,13 +307,13 @@ class Disper:
         if not ress: ress = self.options.resolution
         if ress == 'max':     # max resolution for each
             # override auto-detection weights and get highest resolution
-            ress = self.switcher.get_resolutions(displays)
+            ress = self.switcher().get_resolutions(displays)
             for rl in ress.values():
                 for r in rl: r.weight = 0
             ress = ress.select()
             self.log.info('maximum resolutions for displays: '+str(ress))
         elif ress == 'auto':  # use preferred resolution for each
-            ress = self.switcher.get_resolutions(displays).select()
+            ress = self.switcher().get_resolutions(displays).select()
             self.log.info('preferred resolutions for displays: '+str(ress))
         else:                       # list of resolutions specified
             ress = ResolutionSelection(ress, displays)
@@ -327,16 +326,16 @@ class Disper:
         # figure out direction
         if not direction: direction = self.options.direction
         # and switch
-        result = self.switcher.switch_extend(displays, direction, ress)
+        result = self.switcher().switch_extend(displays, direction, ress)
         self.plugins.set_layout_extend(displays, direction, ress)
         self.plugins.call('switch')
         return result
 
     def export_config(self):
-        return self.switcher.export_config()
+        return self.switcher().export_config()
 
     def import_config(self, data):
-        result = self.switcher.import_config(data)
+        result = self.switcher().import_config(data)
         self.plugins.call('switch')
         return result
 
@@ -364,6 +363,14 @@ class Disper:
             f = open(statefile, 'w')
             f.write(str(stage)+'\n')
             f.close()
+
+    def switcher(self):
+        '''Return switcher object (singleton).
+        This is implemented as a method, so that it can be created only when
+        needed to avoid errors when displaying help.'''
+        if not self._switcher:
+            self._switcher = Switcher()
+        return self._switcher
 
 
 def main():
