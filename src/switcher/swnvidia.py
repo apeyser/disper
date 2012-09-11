@@ -32,6 +32,12 @@ class NVidiaSwitcher:
         self.nv = nvidia.NVidiaControl()
         self.screen = nvidia.Screen(self.nv.xscreen)
         self.log = logging.getLogger('disper.switcher.nvidia')
+        # new NVidia driver versions can just use XRandR, so fail in that
+        # case to give the other driver a chance
+        dversion = self.nv.get_driver_version(self.screen)
+        self.log.info('NVidia kernel driver version: %s'%dversion)
+        if int(dversion.split('.')[0]) >= 300:
+            raise Exception('NVidia driver >= 300 uses XRandR 1.2')
         # either use XRandR module or command-line utility
         try:
             import xrandr

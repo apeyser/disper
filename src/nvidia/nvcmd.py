@@ -34,7 +34,6 @@ class NVidiaControl(NVidiaControlLowLevel):
     '''This class extends nvctrl.NVidiaControl with methods for
     accessing the NV-CONTROL functions on a higher level.'''
 
-
     def get_GPU_count(target):
         '''Return the number of GPU's present in the system.'''
         gpc = self.query_target_count(GPU())
@@ -91,6 +90,16 @@ class NVidiaControl(NVidiaControlLowLevel):
     def get_name(self, target):
         '''the GPU product name on which the specified X screen is running'''
         ns = self.query_string_attribute(target, [], NV_CTRL_STRING_PRODUCT_NAME)
+        return ns.string
+
+    def get_driver_version(self, target):
+        '''the NVIDIA (kernel level) driver version for the specified screen or GPU'''
+        ns = self.query_string_attribute(target, [], NV_CTRL_STRING_NVIDIA_DRIVER_VERSION)
+        return ns.string
+
+    def get_vbios_version(self, target):
+        '''the version of the VBIOS for the specified screen or GPU'''
+        ns = self.query_string_attribute(target, [], NV_CTRL_STRING_VBIOS_VERSION)
         return ns.string
 
     def get_current_modeline(self, target):
