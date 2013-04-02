@@ -14,3 +14,5 @@
 
 * investigate ati backend
 
+* when an invalid display is specified using -d, a cryptic exception may be thrown
+
