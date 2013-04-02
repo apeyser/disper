@@ -124,6 +124,8 @@ def decode( binary, *arguments ):
             asz = rdict[arg.size]
 
         sz = asz * fsz
+        # workaround for https://bugs.launchpad.net/disper/+bug/908856
+        sz = max(sz, struct.calcsize(structcode))
 
         if asz == 1:
             rdict[arg.value] = struct.unpack( structcode, data[:sz] )[0]
