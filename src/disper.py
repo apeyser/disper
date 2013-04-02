@@ -201,12 +201,8 @@ class Disper:
             self.parser.print_help()
             raise SystemExit(2)
         if 'single' in self.options.actions:
-            if self.options.displays != 'auto':
-                self.log.warning('specified displays ignored for single')
             self.switch_primary()
         elif 'secondary' in self.options.actions:
-            if self.options.displays != 'auto':
-                self.log.warning('specified displays ignored for secondary')
             self.switch_secondary()
         elif 'clone' in self.options.actions:
             self.switch_clone()
@@ -235,18 +231,28 @@ class Disper:
     def switch_primary(self, res=None):
         '''Only enable primary display.
            @param res resolution to use; or 'auto' for default or None for option'''
-        return self.switch_single(self.switcher().get_primary_display())
+        if self.options.displays and self.options.displays != 'auto':
+            return self.switch_single(self.options.displays[0])
+        else:
+            return self.switch_single(self.switcher().get_primary_display())
 
     def switch_secondary(self, res=None):
         '''Only enable secondary display.
            @param res resolution to use; or 'auto' for default or None for option'''
-        primary = self.switcher().get_primary_display()
-        try:
-            display = [x for x in self.switcher().get_displays() if x != primary][0]
-        except IndexError:
-            self.log.critical('No secondary display found, falling back to primary.')
-            return self.switch_single(primary, res)
-        return self.switch_single(display, res)
+        if self.options.displays and self.options.displays != 'auto':
+            if len(self.options.displays)>=2:
+                return self.switch_single(self.options.displays[1])
+            else:
+                self.log.critical('No secondary display found, falling back to primary.')
+                return self.switch_single(self.options.displays[0])
+        else:
+            primary = self.switcher().get_primary_display()
+            try:
+                display = [x for x in self.switcher().get_displays() if x != primary][0]
+            except IndexError:
+                self.log.critical('No secondary display found, falling back to primary.')
+                return self.switch_single(primary, res)
+            return self.switch_single(display, res)
 
     def switch_single(self, display=None, res=None):
         '''Only enable one display.
