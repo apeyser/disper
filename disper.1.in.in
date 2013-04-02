@@ -22,18 +22,20 @@ clone and extend, one could use
 .fi
 .RE
 Currently the last selected stage is stored in the file
-\fI~/.disper/last_cycle_stage\fR. This means that when display configuration is
-modified by something else than disper (for example by restarting the
-computer), cycling will continue from where it was last time, not necessarily
-from the current display configuration. This is something that may change in
-the future.
+\fI$XDG_CONFIG_HOME/disper/last_cycle_stage\fR (actually the file
+\fIlast_cycle_stage\fR in the directory of the last configuration file read).
+This means that when display configuration is modified by something else than
+disper (for example by restarting the computer), cycling will continue from
+where it was last time, not necessarily from the current display configuration.
+This is something that may change in the future.
 
 [plugins]
 It is possible to execute user-supplied hooks on display switch, for example to
 display a notification or change the wallpaper. Which ones are enabled is
 specified by the \fB\-\-plugins\fR option. System hooks are located in
 \fB#PREFIX#/share/disper/hooks/\fR while user hooks should be placed in
-\fB~/.disper/hooks/\fR.
+\fB$XDG_CONFIG_HOME/disper/hooks\fR (or \fB~/.config/disper/hooks/\fR
+or \fB~/.disper/hooks/\fR).
 .PP
 Each hook is an executable file (which includes scripts). The following
 environment variables are available when invoked:
@@ -65,21 +67,21 @@ If you want to write your own hook you can also look at the ones supplied with
 disper in #PREFIX#/share/disper/hooks/.
 
 [files]
-.I ~/.disper/config
+\fI$XDG_CONFIG_HOME/disper/config\fR or \fI~/.config/disper/config\fR or \fI~/.disper/config\fR
 .RS
 Default command-line options to include at each disper invocation. Multiple
 lines are concatenated, and lines starting with \fB#\fR are ignored. A typical
 example might include:
 .RS
 .nf
-# enable all plugins in ~/.disper/hooks
+# enable all plugins in ~/.config/disper/hooks
 --plugins=user
 # cycle over clone and extend
 --cycle-stages='-c : -e'
 .fi
 .RE
 .RE
-.I ~/.disper/hooks/
+\fI$XDG_CONFIG_HOME/disper/hooks/\fR or \fI~/.config/disper/hooks/\fR or \fI~/.disper/hooks/\fR
 .RS
 Directory containing user hooks. These can be enabled with the
 \fB\-\-plugins\fR option.

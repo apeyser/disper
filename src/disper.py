@@ -44,6 +44,7 @@ class Disper:
     _switcher = None        # switcher object, see Disper.switcher()
     plugins = None          # plugins object
     log = None
+    conffile = None         # last configuration file read
 
     def __init__(self):
         self.log = logging.getLogger('disper')
@@ -83,9 +84,10 @@ class Disper:
             help='flat-panel scaling mode: "default", "native", "scaled", "centered", or "aspect-scaled"')
         self.add_option('', '--plugins', dest='plugins',
             help='comma-separated list of plugins to enable. Special names: "user" for all user plugins '+
-                 'in ~/.disper/hooks; "all" for all plugins found; "none" for no plugins.')
-        self.add_option('', '--cycle-stages', dest='cycle_stages',
-            help='colon-separated list command-line arguments to cycle through')
+                 'in %s/hooks; "all" for all plugins found; "none" for no plugins.'%(
+                 os.environ.get('XDG_CONFIG_HOME', os.path.join('~', '.config', 'disper'))))
+        self.add_option('', '--cycle-stages', dest='cycle_stages', default='-c:-s:-S',
+            help='colon-separated list command-line arguments to cycle through; "-S:-c:-s" by default')
 
         group = optparse.OptionGroup(self.parser, 'Actions',
             'Select exactly one of the following actions')
@@ -187,6 +189,8 @@ class Disper:
             for l in f.readlines():
                 opts += l.split('#',1)[0] + ' '
             f.close()
+            # remember which configuration file was read last
+            self.conffile = conffile
         return shlex.split(opts)
 
     def switch(self):
@@ -342,9 +346,15 @@ class Disper:
     def _cycle(self, stages):
         # read last state
         stage = 0
+        disperconf = None
         # TODO use X root window hint instead of file (which doesn't adhere to XDG)
-        disperconf = os.path.join(os.getenv('HOME'), '.disper')
+        if self.conffile:
+            disperconf = os.path.dirname(self.conffile)
+        else:
+            home = os.environ.get('HOME', '/')
+            disperconf = os.environ.get('XDG_CONFIG_HOME', os.path.join(home, '.config', 'disper'))
         statefile = os.path.join(disperconf, 'last_cycle_stage')
+        self.log.debug('Cycle state file: '+statefile)
         if os.path.exists(statefile):
             f = open(statefile, 'r')
             stage = int(f.readline())
@@ -359,7 +369,9 @@ class Disper:
         finally:
             # write new state to file; do it here to make sure that a
             # failing configuration doesn't block the cycling
-            if not os.path.exists(disperconf): os.mkdir(disperconf)
+            if not os.path.exists(disperconf):
+                self.log.info('Creating disper configuration directory for statefile: '+disperconf)
+                os.mkdir(disperconf)
             f = open(statefile, 'w')
             f.write(str(stage)+'\n')
             f.close()
