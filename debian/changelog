@@ -1,3 +1,12 @@
+disper (0.3.1) unstable; urgency=low
+
+  * New point release
+  * Works with newer nVidia drivers that support XRandR 1.2
+  * Finish XDG configuration in ~/.disper/config (old location still supported)
+  * A number of small bug fixes.
+
+ -- Willem van Engen <dev-disper@willem.engen.nl>  Tue, 23 Apr 2013 11:59:23 +0200
+
 disper (0.3.0) unstable; urgency=low
 
   * New major release
