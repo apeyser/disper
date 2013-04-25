@@ -392,7 +392,7 @@ def Xchange( xsock, rq) :
         xsock.send( rq.encoding )
         xreply = xsock.recv(65535) # TODO make sure it fits
 
-    except socket.error, err:
+    except socket.error as err:
         raise xnet.XConnectionError( 'Network error: %s' % err[1] )
 
     return xreply

@@ -579,7 +579,7 @@ class NVidiaControl:
         try:
             NVCtrl = minx.XQueryExtension(self.xsock, 'NV-CONTROL')
             self.opcode = NVCtrl.major_opcode
-        except Exception,e:
+        except Exception as e:
             self.xsock.close()
             raise e
 

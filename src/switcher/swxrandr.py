@@ -116,7 +116,7 @@ class XRandrSwitcher:
                 if mode.height != s[1]: continue
                 refresh = mode.dotClock/(mode.hTotal*mode.vTotal)
                 modes.append([i, refresh])
-            modes.sort(lambda x,y: x[1]-y[1])
+            modes.sort(key=lambda x:x[1])
             if len(modes) > 1:
                 self.log.info(str(d)+': available refresh rates for resolution '+
                     str(res)+': '+', '.join(map(lambda o: '%d'%(o[1]), modes)))

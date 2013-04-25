@@ -713,7 +713,7 @@ class Screen:
 
     def get_output_by_name(self, name):
         """Returns the output of the screen with the given name or None"""
-        if self.outputs.has_key(name):
+        if name in self.outputs:
             return self.outputs[name]
         else:
             return None

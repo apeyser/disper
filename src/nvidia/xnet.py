@@ -108,7 +108,7 @@ def get_X_socket(host,dno):
             s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
             s.connect('/tmp/.X11-unix/X%d' % dno)
 
-    except socket.error, msg:
+    except socket.error as msg:
        s.close()
        raise XConnectionError( 'Socket error %s' % msg[1] )
 
@@ -135,7 +135,7 @@ def parse_Xauthority( filename=None ):
         xaf = open(filename, 'rb')
         raw = xaf.read()
         xaf.close()
-    except IOError, err:
+    except IOError as err:
         raise XConnectionError( "Can't read ~/.Xauthority: %s" % err[1] )
         return []
 
@@ -167,7 +167,7 @@ def parse_Xauthority( filename=None ):
 
             entries.append((family, addr, num, name, data))
 
-    except struct.error, e:
+    except struct.error as e:
         raise XConnectionError( '.Xauthority parsing failed' )
 
     if len(entries) == 0:

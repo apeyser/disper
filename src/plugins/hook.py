@@ -68,7 +68,7 @@ class Hook(Plugin):
         cmd = [self._script] + self.disper.argv
         self.log.info('Executing hook: '+' '.join(cmd))
         try: subprocess.Popen(cmd, env=self._env).wait()
-        except OSError, e: self.log.warning('Could not execute hook '+self._script+': '+ e.strerror)
+        except OSError as e: self.log.warning('Could not execute hook '+self._script+': '+ e.strerror)
 
     def _translate_displays(self, displays):
         '''replace invalid variable name characters for displays'''
