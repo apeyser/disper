@@ -83,10 +83,20 @@ RELATION_SAME_AS = 4
 
 from core import Screen, xlib, rr
 
+xopendisplay = None
+class Display(Structure): pass
+
+def get_display(name):
+    global xopendisplay
+    if xopendisplay is None:
+        xopendisplay = xlib.XOpenDisplay
+        xopendisplay.restype = POINTER(Display)
+    return xopendisplay(name)
+
 def get_current_display():
     """Returns the currently used display"""
     display_url = os.getenv("DISPLAY")
-    dpy = xlib.XOpenDisplay(display_url)
+    dpy = get_display(display_url)
     return dpy
 
 def get_current_screen():
@@ -98,7 +108,7 @@ def get_current_screen():
 
 def get_screen_of_display(display, count):
     """Returns the screen of the given display"""
-    dpy = xlib.XOpenDisplay(display)
+    dpy = get_display(display)
     return Screen(dpy, count)
 
 def get_version():
