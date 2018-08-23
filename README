@@ -31,3 +31,14 @@ http://willem.engen.nl/projects/disper/
 
 - Willem van Engen <dev-disper@willem.engen.nl>
 
+Orphan and forked
+-----------------
+
+As of 2018 (seems 2013), this poor package has seemed to lost an owner, 
+and an undefined return value for a ctypes function made all calls fail on most
+current architectures.
+
+But since otherwise it still works and is healthy, the package is patched and available
+for all to enjoy.
+
+- Alex Peyser
