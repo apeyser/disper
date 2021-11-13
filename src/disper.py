@@ -88,7 +88,7 @@ class Disper:
                  os.environ.get('XDG_CONFIG_HOME', os.path.join('~', '.config', 'disper'))))
         self.add_option('', '--cycle-stages', dest='cycle_stages', default='-c:-s:-S',
             help='colon-separated list command-line arguments to cycle through; "-S:-c:-s" by default')
-        self.add_option('', '--reverse-cycles', action='store_const', dest='reverse', const=True,
+        self.add_option('', '--reverse-cycles', action='store_const', dest='reverse_cycles', const=True,
             help='reverse the order of the stages; to be used with --cycle-stages')
 
         group = optparse.OptionGroup(self.parser, 'Actions',
@@ -163,7 +163,7 @@ class Disper:
         if not self.options.scaling: self.options.scaling = "default"
         if not self.options.debug: self.options.debug = logging.WARNING
         if self.options.plugins == None: self.options.plugins = "user"
-        if self.options.reverse == None: self.options.reverse = False
+        if self.options.reverse_cycles == None: self.options.reverse_cycles = False
         self.log.setLevel(self.options.debug)
         self.options.plugins = map(lambda x: x.strip(), self.options.plugins.split(','))
         if self.options.displays != 'auto':
@@ -212,7 +212,7 @@ class Disper:
         elif 'extend' in self.options.actions:
             self.switch_extend()
         elif 'export' in self.options.actions:
-            print self.export_config()
+            print(self.export_config())
         elif 'import' in self.options.actions:
             self.import_config('\n'.join(sys.stdin))
         elif 'cycle' in self.options.actions:
@@ -225,8 +225,8 @@ class Disper:
             for disp in displays:
                 res = self.switcher().get_resolutions_display(disp)
                 res.sort()
-                print 'display %s: %s'%(disp, self.switcher().get_display_name(disp))
-                print ' resolutions: '+str(res)
+                print('display %s: %s'%(disp, self.switcher().get_display_name(disp)))
+                print(' resolutions: '+str(res))
         else:
             self.log.critical('program error, unrecognised action: '+', '.join(self.options.actions))
             raise SystemExit(2)
@@ -369,7 +369,7 @@ class Disper:
             stage = int(f.readline())
             f.close()
         # apply next
-        if self.options.reverse:
+        if self.options.reverse_cycles:
             stage -= 1
             if stage < 0: stage = len(stages) - 1
         else:
