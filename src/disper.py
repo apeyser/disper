@@ -89,7 +89,7 @@ class Disper:
         self.add_option('', '--cycle-stages', dest='cycle_stages', default='-c:-s:-S',
             help='colon-separated list command-line arguments to cycle through; "-S:-c:-s" by default')
         self.add_option('', '--reverse-cycles', action='store_const', dest='reverse_cycles', const=True,
-            help='reverse the order of the stages; to be used with --cycle-stages')
+            help='reverse the order of the stages; to be used with --cycle')
 
         group = optparse.OptionGroup(self.parser, 'Actions',
             'Select exactly one of the following actions')
@@ -212,7 +212,7 @@ class Disper:
         elif 'extend' in self.options.actions:
             self.switch_extend()
         elif 'export' in self.options.actions:
-            print(self.export_config())
+            print self.export_config()
         elif 'import' in self.options.actions:
             self.import_config('\n'.join(sys.stdin))
         elif 'cycle' in self.options.actions:
@@ -225,8 +225,8 @@ class Disper:
             for disp in displays:
                 res = self.switcher().get_resolutions_display(disp)
                 res.sort()
-                print('display %s: %s'%(disp, self.switcher().get_display_name(disp)))
-                print(' resolutions: '+str(res))
+                print 'display %s: %s'%(disp, self.switcher().get_display_name(disp))
+                print ' resolutions: '+str(res)
         else:
             self.log.critical('program error, unrecognised action: '+', '.join(self.options.actions))
             raise SystemExit(2)
