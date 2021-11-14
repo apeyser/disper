@@ -88,6 +88,8 @@ class Disper:
                  os.environ.get('XDG_CONFIG_HOME', os.path.join('~', '.config', 'disper'))))
         self.add_option('', '--cycle-stages', dest='cycle_stages', default='-c:-s:-S',
             help='colon-separated list command-line arguments to cycle through; "-S:-c:-s" by default')
+        self.add_option('', '--reverse-cycles', action='store_const', dest='reverse_cycles', const=True,
+            help='reverse the order of the stages; to be used with --cycle')
 
         group = optparse.OptionGroup(self.parser, 'Actions',
             'Select exactly one of the following actions')
@@ -161,6 +163,7 @@ class Disper:
         if not self.options.scaling: self.options.scaling = "default"
         if not self.options.debug: self.options.debug = logging.WARNING
         if self.options.plugins == None: self.options.plugins = "user"
+        if self.options.reverse_cycles == None: self.options.reverse_cycles = False
         self.log.setLevel(self.options.debug)
         self.options.plugins = map(lambda x: x.strip(), self.options.plugins.split(','))
         if self.options.displays != 'auto':
@@ -366,8 +369,12 @@ class Disper:
             stage = int(f.readline())
             f.close()
         # apply next
-        stage += 1
-        if stage >= len(stages): stage = 0
+        if self.options.reverse_cycles:
+            stage -= 1
+            if stage < 0: stage = len(stages) - 1
+        else:
+            stage += 1
+            if stage >= len(stages): stage = 0
         self.argv = filter(lambda x: x!='-C' and x!='--cycle', self.argv)
         self.options_parse(shlex.split(stages[stage]))
         try:
