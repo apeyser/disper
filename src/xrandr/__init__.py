@@ -82,7 +82,7 @@ RELATION_RIGHT_OF = 2
 RELATION_LEFT_OF = 3
 RELATION_SAME_AS = 4
 
-from .core import Screen, rr, xlib
+from .core import Screen, xlib
 
 xopendisplay = None
 
@@ -150,5 +150,3 @@ def _check_required_version(version):
 
 
 XRANDR_VERSION = get_version()
-
-# vim:ts=4:sw=4:et

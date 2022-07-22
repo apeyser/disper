@@ -48,6 +48,3 @@ def get_screen_config(screen):
     dpy_url = dpy.get_name()
     count = screen.get_number()
     return xrandr.get_screen_of_display(dpy_url, count)
-
-
-# vim:ts=4:sw=4:et

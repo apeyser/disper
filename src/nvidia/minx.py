@@ -163,7 +163,8 @@ def decode(binary, *arguments):
 
 
 # Exception class for X server errors
-#
+
+
 class XServerError(Exception):
     """XServerError is an Exception class to raise X errors.
     this class decodes the error return and selects the message

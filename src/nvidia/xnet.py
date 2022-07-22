@@ -1,4 +1,3 @@
-##############################################################################
 # xnet.py - python versions of Xauth functions
 #
 # code taken from NvThermometer by Harry Organs, which was based on the code
@@ -52,7 +51,8 @@ FamilyLocal = 256
 
 
 # a simple Exception class to raise X connection errors
-#
+
+
 class XConnectionError(Exception):
     def __init__(self, msg):
         self.msg = "X CONNECTION ERROR: " + msg
@@ -62,7 +62,7 @@ class XConnectionError(Exception):
 
 
 # get X display info
-#
+
 __display_re = re.compile(r"^([-a-zA-Z0-9._]*):([0-9]+)(\.([0-9]+))?$")
 
 
@@ -93,7 +93,8 @@ def get_X_display(display=None):
 
 
 # return a socket connected to X server port
-#
+
+
 def get_X_socket(host, dno):
     s = None
     try:
@@ -115,9 +116,9 @@ def get_X_socket(host, dno):
 
 
 # parse .Xauthority file
-#
-def parse_Xauthority(filename=None):
 
+
+def parse_Xauthority(filename=None):
     if filename is None:
         filename = os.environ.get("XAUTHORITY")
 
@@ -173,9 +174,9 @@ def parse_Xauthority(filename=None):
 
 
 # find an authority to connect with
-#
-def match_X_auth(family, address, dispno, elist, types=("MIT-MAGIC-COOKIE-1",)):
 
+
+def match_X_auth(family, address, dispno, elist, types=("MIT-MAGIC-COOKIE-1",)):
     num = str(dispno)
 
     matches = {}
@@ -192,9 +193,9 @@ def match_X_auth(family, address, dispno, elist, types=("MIT-MAGIC-COOKIE-1",)):
 
 
 # return the connection authority
-#
-def get_X_auth(sock, dname, host, dno):
 
+
+def get_X_auth(sock, dname, host, dno):
     if host:
         family = FamilyInternet
         octets = string.split(sock.getpeername()[0], ".")
@@ -216,9 +217,9 @@ def get_X_auth(sock, dname, host, dno):
 
 
 # determine the byte order of architecture
-#
-def get_X_byteorder():
 
+
+def get_X_byteorder():
     bs = struct.unpack("BB", struct.pack("H", 0x0100))[0]
     if bs:
         order = 0x42

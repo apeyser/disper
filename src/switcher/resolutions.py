@@ -1,4 +1,3 @@
-##############################################################################
 # resolutions.py - managing collections of resolutions
 #
 # This program is free software; you can redistribute it and/or modify
@@ -12,16 +11,6 @@
 # GNU General Public License at http://www.gnu.org/licenses/gpl.txt
 # By using, editing and/or distributing this software you agree to
 # the terms and conditions of this license.
-
-# define sorted() for Python 2.3 and below
-try:
-    sorted(())
-except:
-
-    def sorted(obj):
-        lnew = type(obj)(obj)
-        lnew.sort()
-        return lnew
 
 
 class Resolution:

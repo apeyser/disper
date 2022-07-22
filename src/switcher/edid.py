@@ -1,54 +1,54 @@
 # edid.py - EDID parsing routines
-#
+
 # code taken from xac-0.6_pre4
 # copyright was not clearly indicated, put probably:
 #   Copyright 1999-2006 Gentoo Foundation
 #   Distributed under the terms of the GNU General Public License v2
-#
 
-### FIXME recheck endianness for these structs
 
-from struct import pack, unpack
+# FIXME recheck endianness for these structs
 
-### EDID Header Magic
+from struct import unpack
+
+# EDID Header Magic
 EDID_HEADER = "\0\xFF\xFF\xFF\xFF\xFF\xFF\0"
-### ASCII capital letter offset
+# ASCII capital letter offset
 ASC = 64
 SERIAL_DT = "\0\0\0\xFF\0"
 ASCII_DT = "\0\0\0\xFE\0"
 RANGE_DT = "\0\0\0\xFD\0"
 NAME_DT = "\0\0\0\xFC\0"
 
-### Offsets from the edid spec
+# Offsets from the edid spec
 class Edid:
     def __init__(self, edid=None):
         self.edid = None
         self.valid = 1
-        ### Parse the passed in edid
+        # Parse the passed in edid
         if edid == None:
-            # 			print("Error: Empty EDID")
+            # print("Error: Empty EDID")
             self.valid = 0
             edid = "\0" * 128
-        ### Make sure it a valid edid (header matches)
+        # Make sure it a valid edid (header matches)
         if edid[:8] != EDID_HEADER:
-            # 			print("Error: Invalid EDID")
+            # print("Error: Invalid EDID")
             self.valid = 0
             edid = "\0" * 128
-        ### Check the checksum
+        # Check the checksum
         sum = 0
         for i in range(128):
             sum = (sum + int(unpack("B", edid[i])[0])) & 0xFF
         if sum != 0:
-            # 			print("Checksum failed, result should be 0, instead it's:", sum)
+            # print("Checksum failed, result should be 0, instead it's:", sum)
             self.valid = 0
             edid = "\0" * 128
 
         self.edid = edid
 
-    ### ID String
+    # ID String
     def get_id_string(self):
         name = unpack(">H", self.edid[8:10])[0]
-        ### FIXME Be sure to check endianness on an x86 machine
+        # FIXME Be sure to check endianness on an x86 machine
         n = (
             chr(((name >> 10) & 0x1F) + ASC)
             + chr(((name >> 5) & 0x1F) + ASC)
@@ -56,20 +56,20 @@ class Edid:
         )
         return n + hex(unpack(">H", self.edid[10:12])[0])[2:].upper()
 
-    ### Serial Number
+    # Serial Number
     def get_serial_number(self):
         return unpack(">I", self.edid[12:16])[0]
 
-    ### Tupple of week, year from EDID
+    # Tupple of week, year from EDID
     def get_date(self):
         date = unpack("BB", self.edid[16:18])
         return [date[0], date[1] + 1990]
 
-    ### EDID version, revision
+    # EDID version, revision
     def get_edid_ver(self):
         return unpack("BB", self.edid[18:20])
 
-    ### Video input definition struct
+    # Video input definition struct
     def get_video_input_def(self):
         vid_in = {}
         v = unpack("B", self.edid[20])[0]
@@ -85,15 +85,15 @@ class Edid:
             vid_in["serration_vsync"] = v & 1
         return vid_in
 
-    ### Size of screen (horiz, vert)
+    # Size of screen (horiz, vert)
     def get_size(self):
         return unpack("BB", self.edid[21:23])
 
-    ### Gamma
+    # Gamma
     def get_gamma(self):
         return (unpack("B", self.edid[23])[0] / 100.0) + 1.0
 
-    ### Feature Support
+    # Feature Support
     def get_feature_support(self):
         fs = {}
         f = unpack("B", self.edid[24])[0]
@@ -106,11 +106,11 @@ class Edid:
         fs["gtf"] = f & 1
         return fs
 
-    ### Color Characteristics
+    # Color Characteristics
     def get_color_characteristics(self):
         cc = {}
         c = unpack("10B", self.edid[25:35])
-        ### Check the / 1024 value... (is this right?)
+        # Check the / 1024 value... (is this right?)
         cc["red_x"] = ((c[2] << 2) + ((c[0] >> 6) & 3)) / 1024.0
         cc["red_y"] = ((c[3] << 2) + ((c[0] >> 4) & 3)) / 1024.0
         cc["green_x"] = ((c[4] << 2) + ((c[0] >> 2) & 3)) / 1024.0
@@ -122,7 +122,7 @@ class Edid:
 
         return cc
 
-    ### Established Timings
+    # Established Timings
     def get_timings(self):
         timing = [
             [720, 400, 70],
@@ -144,9 +144,9 @@ class Edid:
         ]
         my_timing = []
 
-        ### Established timings
+        # Established timings
         est = unpack("BB", self.edid[35:37])
-        ### This is what the field is set to if not used
+        # This is what the field is set to if not used
         if est[0] == "\x01":
             est[0] = 0
         elif est[1] == "\x01":
@@ -157,7 +157,7 @@ class Edid:
                 if (est[j] >> i) & 1:
                     my_timing.append(timing[i])
 
-        ### Add the "standard" timings into the timing array
+        # Add the "standard" timings into the timing array
         std = unpack(">8H", self.edid[38:54])
         man = unpack("B", self.edid[37])[0]
 
@@ -178,19 +178,19 @@ class Edid:
                 my_timing.append([horiz, vert, freq])
         return my_timing
 
-    ### Monitor Descriptor
+    # Monitor Descriptor
     def get_range_dt(self, tag):
         sync = {}
-        ### If possible, we get the range limit from the range limit tag
+        # If possible, we get the range limit from the range limit tag
         sync["v_min"] = unpack("B", tag[5])[0]
         sync["v_max"] = unpack("B", tag[6])[0]
         sync["h_min"] = unpack("B", tag[7])[0]
         sync["h_max"] = unpack("B", tag[8])[0]
         return sync
 
-    ### Detailed Timing (from monitor details)
+    # Detailed Timing (from monitor details)
     def get_timing_dt(self, info):
-        ### Search for detailed timing info
+        # Search for detailed timing info
         timing = {}
         timing["pixel_clock"] = unpack(">H", info[:2])[0]
 
@@ -237,7 +237,7 @@ class Edid:
         timing["variant"] = (unpack("B", info[17])[0] >> 1) & 3
         return timing
 
-    ### Parse Monitor Details
+    # Parse Monitor Details
     def get_monitor_details(self):
         details = []
         for i in range(4):
@@ -273,7 +273,7 @@ class Edid:
                 details.append(["Detailed Timing", self.get_timing_dt(tag)])
         return details
 
-    ### Get a readable name for this monitor
+    # Get a readable name for this monitor
     def get_string_name(self):
         s = ""
         details = self.get_monitor_details()

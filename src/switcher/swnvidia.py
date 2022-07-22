@@ -1,4 +1,3 @@
-##############################################################################
 # switcher-nvidia.py - display switching for nVidia cards
 #
 # This program is free software; you can redistribute it and/or modify
@@ -19,8 +18,6 @@ import re
 
 import nvidia
 
-from .resolutions import *
-
 
 class NVidiaSwitcher:
 
@@ -40,7 +37,7 @@ class NVidiaSwitcher:
             raise Exception("NVidia driver >= 300 uses XRandR 1.2")
         # either use XRandR module or command-line utility
         try:
-            import xrandr
+            import xrandr  # noqa
 
             self._switch_method = self._xrandr_switch_mod
         except:
@@ -279,8 +276,8 @@ class NVidiaSwitcher:
     def _add_metamode(self, mm):
         """add a metamode. Returns id of newly created metamode, or -1 if it
         already existed."""
-        ## To enter a MetaMode line, the displays involved must have been
-        ## associated or the nvidia driver doesn't remember display names.
+        # To enter a MetaMode line, the displays involved must have been
+        # associated or the nvidia driver doesn't remember display names.
         self.log.info("adding metamode: %s" % mm)
         return self.nv.add_metamode(self.screen, mm)
 
@@ -288,8 +285,8 @@ class NVidiaSwitcher:
         """add a temporary auto-select metamode that is needed before
         associating displays. returns id of metamode created, or -1 if it
         already existed"""
-        ## There must be a metamode containing all displays when associating
-        ## displays, or the X server may crash.
+        # There must be a metamode containing all displays when associating
+        # displays, or the X server may crash.
         mm = nvidia.metamode_clone(displays, "nvidia-auto-select")
         self.log.info("adding auto-select metamode: %s" % str(mm))
         return self.nv.add_metamode(self.screen, mm)

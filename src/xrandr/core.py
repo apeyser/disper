@@ -34,7 +34,6 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
-import os
 from ctypes import *
 
 import xrandr
@@ -1047,6 +1046,3 @@ def get_mode_width(mode, rotation):
         return mode.height
     else:
         return 0
-
-
-# vim:ts=4:sw=4:et

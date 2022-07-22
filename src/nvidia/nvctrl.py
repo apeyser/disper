@@ -24,7 +24,7 @@ from .nvtarget import *
 
 # NV-CONTROL integer attrs. this list contains constants defined in both
 # NVCtrl.h and NVCtrlAttributes.h. these constants are the attr codes
-#
+
 # target types defined in nvtarget
 
 NV_CTRL_BUS_TYPE = 5  # /* R--G */
@@ -85,7 +85,7 @@ NV_CTRL_BINARY_DATA_LAST_ATTRIBUTE = NV_CTRL_BINARY_DATA_VCSCS_USED_BY_GPU
 
 
 # extensions defined in NVCtrlAttributes.h
-#
+
 NV_CTRL_ATTR_BASE = NV_CTRL_LAST_ATTRIBUTE + 1
 NV_CTRL_ATTR_EXT_BASE = NV_CTRL_ATTR_BASE
 NV_CTRL_ATTR_EXT_NV_PRESENT = NV_CTRL_ATTR_EXT_BASE + 0
@@ -101,7 +101,7 @@ NV_CTRL_ATTR_NV_BASE = NV_CTRL_ATTR_EXT_LAST_ATTRIBUTE + 1
 # NV-CONTROL string attrs. this list contains constants defined in both
 # NVCtrl.h and NVCtrlAttributes.h. these constants are the attr codes
 # for use with the string functions
-#
+
 NV_CTRL_STRING_PRODUCT_NAME = 0  # /* R--G */
 NV_CTRL_STRING_VBIOS_VERSION = 1  # /* R--G */
 NV_CTRL_STRING_NVIDIA_DRIVER_VERSION = 3  # /* R--G */
@@ -129,7 +129,7 @@ NV_CTRL_STRING_OPERATION_LAST_ATTRIBUTE = NV_CTRL_STRING_OPERATION_BUILD_MODEPOO
 
 
 # NV-CONTROL major op numbers. these constants identify the request type
-#
+
 _X_nvCtrlQueryExtension = 0
 _X_nvCtrlQueryAttribute = 2
 _X_nvCtrlQueryStringAttribute = 4
@@ -144,7 +144,7 @@ _X_nvCtrlStringOperation = 25
 # various lists that go with attrs, but are handled more compactly
 # this way. these lists are indexed by the possible values of their attrs
 # and are explained in NVCtrl.h
-#
+
 
 ATTRIBUTE_TYPE_UNKNOWN = 0
 ATTRIBUTE_TYPE_INTEGER = 1
@@ -388,7 +388,8 @@ class _NVCtrlQueryBinaryDataReply:
 
 
 # NV-CONTROL Query String Attribute
-#
+
+
 class _NVCtrlQueryStringAttributeRequest:
     """this is the string version of Query Attribute. works
     just like the int version, only the reply is different"""
@@ -439,7 +440,8 @@ class _NVCtrlQueryStringAttributeReply:
 
 
 # NV-CONTROL Set String Attribute
-#
+
+
 class _NVCtrlSetStringAttributeRequest:
     def __init__(self, opcode, screen, display_mask, attr, data):
         dlen = len(data) + 1  # include terminating 0
@@ -476,7 +478,8 @@ class _NVCtrlSetStringAttributeReply:
 
 
 # NV-CONTROL Query Valid Attribute Values
-#
+
+
 class _NVCtrlQueryValidAttributeValuesRequest:
     """this class handles the Query Valid Attribute Values request,
     which tells us whether or not the attr is present, and if so,
@@ -519,7 +522,8 @@ class _NVCtrlQueryValidAttributeValuesReply:
 
 
 # NV-CONTROL String Operation
-#
+
+
 class _NVCtrlStringOperationRequest:
     def __init__(self, opcode, target_id, target_type, display_mask, attr, data):
         dlen = 0
@@ -564,7 +568,8 @@ class _NVCtrlStringOperationReply:
 
 
 # NV-CONTROL String Operation
-#
+
+
 class NVidiaControl:
 
     xsock = None  # X connection socket

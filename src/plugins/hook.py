@@ -1,4 +1,3 @@
-##############################################################################
 # hook.py - disper script plugin
 #
 # This program is free software; you can redistribute it and/or modify

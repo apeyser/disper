@@ -1,4 +1,3 @@
-##############################################################################
 # __init__.py - disper plugin system
 #
 # This program is free software; you can redistribute it and/or modify
@@ -17,7 +16,6 @@ import logging
 import os
 
 from .hook import Hook
-from .plugin import Plugin
 
 
 class Plugins:

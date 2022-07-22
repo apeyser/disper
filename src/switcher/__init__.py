@@ -1,4 +1,3 @@
-##############################################################################
 # __init__.py - display switching with multiple backends
 #
 # This program is free software; you can redistribute it and/or modify
@@ -59,8 +58,8 @@ class Switcher:
         if not self.backend:
             raise Exception("No suitable backend found")
 
-    ## the following methods must be defined by backends; see swnvidia.py
-    ## for a complete example and an explanation of these methods
+    # the following methods must be defined by backends; see swnvidia.py
+    # for a complete example and an explanation of these methods
     # def get_displays(self):
     # def get_primary_display(self):
     # def get_display_name(self, ndisp):
