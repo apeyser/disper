@@ -1,5 +1,5 @@
 #!/bin/sh
-###############################################################################
+
 # disper hook - show relevant environment variables for debugging
 #
 # This program is free software; you can redistribute it and/or modify
@@ -16,6 +16,6 @@
 
 # This may be the only plugin that does not need to check for
 # DISPER_STAGE at all.
+
 echo "Disper hook environment for stage: $DISPER_STAGE"
 env | sed 's|^\(DISPER_\)|  \1|p;d'
-

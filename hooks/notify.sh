@@ -1,5 +1,5 @@
 #!/bin/sh
-###############################################################################
+
 # disper hook - desktop notification on switch
 #
 # This program is free software; you can redistribute it and/or modify
@@ -39,4 +39,3 @@ switch)
 	notify-send -i disper "$TITLE" "$MESSAGE"
 	;;
 esac
-

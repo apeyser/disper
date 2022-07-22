@@ -1,9 +1,6 @@
-# simple Makefile for disper
-
 PREFIX = /usr/local
 BINDIR = $(PREFIX)/bin
 DATADIR = $(PREFIX)/share/disper
-
 INSTALL = install
 
 all: disper disper.1
@@ -41,8 +38,6 @@ disper: disper.in
 disper.1: disper.1.in
 	sed -e "s|#PREFIX#|$(PREFIX)|;s|#VERSION#|`src/disper.py --version|sed 's|^\w\+\s*||'`|" <disper.1.in >disper.1
 
-# run this after changing command-line options in src/cli.py
-# afterwards the file can be committed to the repository
 disper.1.in: src/disper.py disper.1.in.in
 	help2man --name="on-the-fly display switcher" --include=disper.1.in.in \
 		-N --section=1 --output=disper.1.tmp $<
@@ -56,4 +51,3 @@ clean:
 	find . -name *.pyo -exec rm -f {} \;
 	find . -name core -exec rm -f {} \;
 	find . -name *.swp -exec rm -f {} \;
-
