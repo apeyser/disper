@@ -1,4 +1,4 @@
-###############################################################################
+
 # minx.py - an example of a minimal X Protocol interface in python
 #
 # code taken from NvThermometer by Harry Organs, which was based on the code
@@ -67,7 +67,6 @@ exceeds the maximum length accepted by the server.',
 17:'Implementation error. The server does not implement some aspect of the \
 request.' }
 
-_XServerError__XERRORMSG = __XERRORMSG
 
 class XData:
     '''XData is a simple argument container used to avoid the
@@ -142,7 +141,7 @@ def decode( binary, *arguments ):
     return rdict, data
 
 
-###############################################################################
+
 # Exception class for X server errors
 #
 class XServerError(Exception):
@@ -153,6 +152,7 @@ class XServerError(Exception):
     which contains extra data for some errors.'''
 
     def __init__(self,encoding):
+        global __XERRORMSG
         xreply, ad = decode( encoding,
         XData('CARD8',1,'Error'),
         XData('CARD8',1,'code'),
@@ -172,11 +172,10 @@ class XServerError(Exception):
     def __str__(self):
         return 'X Error ' + str(self.error_code) + ': ' + self.message
 
-
         
-###############################################################################
 # Connection Setup request and replies
-#
+
+
 class XConnectRequest:
     '''XConnectRequest encodes the packet needed to connect to the X server'''
 
@@ -207,6 +206,7 @@ class XConnectRefusedReply:
         
         for n, v in xreply.iteritems():
             setattr( self, n, v )
+
 
 class XConnectAcceptedReply:
     '''the logon reply. contains all the info needed by
@@ -291,7 +291,6 @@ class XConnectAcceptedReply:
             self.roots.append(se)
 
 
-
 class XConnectAuthenticateReply:
     '''reply sent by secured servers to request client authentication.
     authentication procedures are not defined by the X protcol, so the
@@ -312,9 +311,9 @@ class XConnectAuthenticateReply:
         self.reason = rs['reason']
 
 
-###############################################################################
 # QueryExtension request and reply - opcode 98
-#
+
+
 class XQueryExtensionRequest:
     '''this class wraps the X Protocol Query Extension request. it
     requires the name of the extension to look for as a constructor arg'''
@@ -326,6 +325,7 @@ class XQueryExtensionRequest:
         XData('CARD16',1,len(exname)),
         XData('PAD',2,[0,0]),
         XData('STRING8',len(exname),exname) )
+
 
 class XQueryExtensionReply:
     '''the reply to a Query Extension request. if attr present is
@@ -348,9 +348,9 @@ class XQueryExtensionReply:
             setattr( self, n, v )
 
 
-###############################################################################
 # ListExtensions request and reply - opcode 99
-#
+
+
 class XListExtensionsRequest:
     '''this class wraps the X List Extensions request'''
 
@@ -358,6 +358,7 @@ class XListExtensionsRequest:
         self.encoding = encode( XData('CARD8',1,99),
         XData('PAD',1,0),
         XData('CARD16',1,1) )
+
 
 class XListExtensionsReply:
     '''this class wraps the X List Extensions reply. it contains
@@ -382,10 +383,9 @@ class XListExtensionsReply:
             ad = ad[sz+1:]
 
 
-
-###############################################################################
 # Procedures to use the request classes to get info, etc
-#
+
+
 def Xchange( xsock, rq) :
     xreply = ''
     try:
@@ -445,6 +445,3 @@ def XQueryExtension( xsock, exname ):
             raise XServerError( binrp )
 
     return XQueryExtensionReply( binrp )
-    
-
-

@@ -19,6 +19,7 @@ import xrandr
 
 from resolutions import *
 
+
 class XRandrSwitcher:
 
     def __init__(self):
@@ -27,31 +28,26 @@ class XRandrSwitcher:
         if not xrandr.has_extension():
             raise Exception('No XRandR extension found')
 
-
     def get_displays(self):
         '''return an array of connected displays'''
         displays = self.screen.get_outputs()
         displays = filter(lambda o: o.is_connected(), displays)
-        displays = map(lambda o: o.name, displays)
+        displays = list(map(lambda o: o.name, displays))
         return displays
-
 
     def get_primary_display(self):
         # no idea, just return first one for now
         return self.get_displays()[0]
-
 
     def get_display_name(self, ndisp):
         '''return the name of a display'''
         # nothing more as of now
         return ndisp
 
-
     def get_display_supported_res(self, ndisp):
         '''return a set of supported resolutions for a display.'''
         o = self.screen.get_output_by_name(ndisp)
         return o.get_available_resolutions()
-
 
     def get_display_preferred_res(self, ndisp):
         '''return the preferred resolution for a display.'''
@@ -59,18 +55,15 @@ class XRandrSwitcher:
         m = o.get_available_modes()[o.get_preferred_mode()]
         return [m.width,m.height]
 
-
     def get_display_edid(self, ndisp):
         '''return the EDID data for a display.'''
         # not available now
         return None
 
-
     def switch_clone(self, displays, res):
         '''switch to resolution and clone all displays'''
         ress = ResolutionSelection(res, displays)
         return self._switch(displays, ress, xrandr.RELATION_SAME_AS)
-
 
     def switch_extend(self, displays, direction, ress):
         '''extend desktop across all displays. direction is one of
@@ -89,17 +82,14 @@ class XRandrSwitcher:
             raise ValueError('extend direction must be left/right/bottom/top')
         return self._switch(displays, ress, relation)
 
-
     def import_config(self, cfg):
         '''restore a display configuration as exported by export_config()'''
         raise NotImplementedError('import not yet implemented')
-
 
     def export_config(self):
         '''return a string that contains all information to set the current
         display configuration using import_config().'''
         raise NotImplementedError('export not yet implemented')
-
 
     def _switch(self, displays, ress, relation):
         '''switch displays to the specified resolution according to XRandR relation'''

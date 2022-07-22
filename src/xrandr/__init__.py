@@ -40,6 +40,7 @@ __status__ = "development"
 
 from ctypes import *
 import os
+from . import core
 
 
 RR_ROTATE_0 = 1
@@ -83,8 +84,13 @@ RELATION_SAME_AS = 4
 
 from core import Screen, xlib, rr
 
+
 xopendisplay = None
-class Display(Structure): pass
+
+
+class Display(Structure):
+    pass
+
 
 def get_display(name):
     global xopendisplay
@@ -93,11 +99,13 @@ def get_display(name):
         xopendisplay.restype = POINTER(Display)
     return xopendisplay(name)
 
+
 def get_current_display():
     """Returns the currently used display"""
     display_url = os.getenv("DISPLAY")
     dpy = get_display(display_url)
     return dpy
+
 
 def get_current_screen():
     """Returns the currently used screen"""
@@ -106,10 +114,12 @@ def get_current_screen():
     screen = Screen(dpy)
     return screen
 
+
 def get_screen_of_display(display, count):
     """Returns the screen of the given display"""
     dpy = get_display(display)
     return Screen(dpy, count)
+
 
 def get_version():
     """Returns a tuple containing the major and minor version of the xrandr
@@ -123,17 +133,20 @@ def get_version():
         return (major.value, minor.value)
     return None
 
+
 def has_extension():
     """Returns True if the xrandr extension is available"""
     if XRANDR_VERSION:
         return True
     return False
 
+
 def _check_required_version(version):
     """Raises an exception if the given or a later version of xrandr is not
        available"""
     if XRANDR_VERSION == None or XRANDR_VERSION < version:
-        raise UnsupportedRRError(version, XRANDR_VERSION)
+        raise core.UnsupportedRRError(version, XRANDR_VERSION)
+
 
 XRANDR_VERSION = get_version()
 

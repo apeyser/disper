@@ -52,6 +52,7 @@ Status = c_int
 xlib = cdll.LoadLibrary("libX11.so.6")
 rr = cdll.LoadLibrary("libXrandr.so.2")
 
+
 # query resources
 class _XRRModeInfo(Structure):
     _fields_ = [
@@ -71,6 +72,7 @@ class _XRRModeInfo(Structure):
         ("modeFlags", c_long),
         ]
 
+
 class _XRRScreenSize(Structure):
     _fields_ = [
         ("width", c_int),
@@ -78,6 +80,7 @@ class _XRRScreenSize(Structure):
         ("mwidth", c_int),
         ("mheight", c_int)
         ]
+
 
 class _XRRCrtcInfo(Structure):
     _fields_ = [
@@ -94,7 +97,8 @@ class _XRRCrtcInfo(Structure):
         ("npossible", c_int),
         ("possible", POINTER(RROutput)),
         ]
-    
+
+
 class _XRRScreenResources(Structure):
     _fields_ = [
         ("timestamp", Time),
@@ -107,15 +111,18 @@ class _XRRScreenResources(Structure):
         ("modes", POINTER(_XRRModeInfo)),
         ]
 
+
 class RRError(Exception):
     """Base exception class of the module"""
     pass
+
 
 class UnsupportedRRError(RRError):
     """Raised if the required XRandR extension version is not available"""
     def __init__(self, required, current):
         self.required = required
         self.current = current
+
 
 # XRRGetOutputInfo
 class _XRROutputInfo(Structure):
@@ -137,6 +144,7 @@ class _XRROutputInfo(Structure):
         ("modes", POINTER(RRMode))
         ]
 
+
 class _XRRCrtcGamma(Structure):
     _fields_ = [
         ('size', c_int),
@@ -145,12 +153,14 @@ class _XRRCrtcGamma(Structure):
         ('blue', POINTER(c_ushort)),
         ]
 
+
 def _array_conv(array, type, conv = lambda x:x):
     length = len(array)
     res = (type*length)()
     for i in range(length):
         res[i] = conv(array[i])
     return res
+
 
 class Output:
     """The output is a reference to a supported output jacket of the graphics
@@ -182,16 +192,20 @@ class Output:
         """Frees the internal reference to the output info if the output gets
            removed"""
         rr.XRRFreeOutputInfo(self._info)
+
     def get_physical_width(self):
         """Returns the display width reported by the connected output device"""
         return self._info.contents.mm_width
+
     def get_physical_height(self):
         """Returns the display height reported by the connected output device"""
         return self._info.contents.mm_height
+
     def get_crtc(self):
         """Returns the xid of the hardware pipe to which the the output is
            attached. If the output is disabled it will return 0"""
         return self._info.contents.crtc
+
     def get_crtcs(self):
         """Returns the xids of the hardware pipes to which the output could
            be attached"""
@@ -924,7 +938,8 @@ class Screen:
                 self._width = self._width_min
             else:
                 self._width = width
-        #FIXME: Physical size is missing
+        # FIXME: Physical size is missing
+
 
 def _to_gamma(gamma):
     g = rr.XRRAllocGamma(len(gamma[0]))
@@ -934,6 +949,7 @@ def _to_gamma(gamma):
         g.blue[i] = gamma[2][i]
     return g
 
+
 def _from_gamma(g):
     gamma = ([], [], [])
     for i in range(g.size):
@@ -941,6 +957,7 @@ def _from_gamma(g):
         gamma[1].append(g.green[i])
         gamma[2].append(g.blue[i])
     rr.XRRFreeGamma(g)
+
 
 def get_mode_height(mode, rotation):
     """Return the height of the given mode taking the rotation into account"""
@@ -950,6 +967,7 @@ def get_mode_height(mode, rotation):
         return mode.width
     else:
         return 0
+
 
 def get_mode_width(mode, rotation):
     """Return the width of the given mode taking the rotation into account"""

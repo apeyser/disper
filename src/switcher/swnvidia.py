@@ -144,13 +144,13 @@ class NVidiaSwitcher:
             if key == 'backend':
                 backend = value
             elif key == 'associated displays':
-                displays = map(lambda s: s.strip(), value.split(','))
+                displays = list(map(lambda s: s.strip(), value.split(',')))
             elif key == 'metamode':
                 mmline = value.strip()
             elif key == 'scaling':
-                scaling = map(lambda s: s.strip(), value.split(','))
+                scaling = list(map(lambda s: s.strip(), value.split(',')))
             elif key == 'xinerama info order':
-                xio = map(lambda s: s.strip(), value.split(','))
+                xio = list(map(lambda s: s.strip(), value.split(',')))
 
         if not backend:
             self.log.warning('no backend specified, assuming nvidia')
@@ -186,12 +186,11 @@ class NVidiaSwitcher:
         scalings = self.get_scaling(assocdisplays)
         cfg.append('scaling: ' + ', '.join(scalings))
         # Xinerama info order
-        xio = filter(lambda x: x in assocdisplays, 
+        xio = list(filter(lambda x: x in assocdisplays,
             map(lambda s: s.strip(), 
-            self.nv.get_xinerama_info_order(self.screen).split(',')))
+            self.nv.get_xinerama_info_order(self.screen).split(','))))
         cfg.append('xinerama info order: ' + ", ".join(xio))
         return '\n'.join(cfg)
-
 
     def _switch(self, mmline, displays, scaling=None, xio=None):
         '''switch to the specified metamode. mmline is a MetaMode, displays
@@ -234,7 +233,7 @@ class NVidiaSwitcher:
         '''
 
         # make sure requested displays are connected (or metamode can't be created)
-        unconndisplays = filter(lambda x: x not in self.get_displays(), displays)
+        unconndisplays = list(filter(lambda x: x not in self.get_displays(), displays))
         if len(unconndisplays) > 0:
             raise Exception('unconnected displays referenced, please connect: ' + \
                 ', '.join(unconndisplays))

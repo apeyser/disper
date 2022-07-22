@@ -1,4 +1,4 @@
-###############################################################################
+
 # nvcmd.py - nvidia NV-CONTROL X extension functions in python
 #
 # this file contains only a subset of the NV-CONTROL functions, expand and
@@ -206,7 +206,7 @@ class NVidiaControl(NVidiaControlLowLevel):
         of token=value pairs, separated from the ModeLine string with a
         "::".'''
         mls = self.query_binary_data(target, [display], NV_CTRL_BINARY_DATA_MODELINES)
-        return filter(lambda x: x, mls.data.split('\0'))
+        return list(filter(lambda x: x, mls.data.split('\0')))
 
     def get_current_metamode(self, target):
         '''returns the metamode currently being used by the specified X
@@ -227,7 +227,7 @@ class NVidiaControl(NVidiaControlLowLevel):
         of token=value paris, separated from the  MetaMode string with
         "::".'''
         mms = self.query_binary_data(target, [], NV_CTRL_BINARY_DATA_METAMODES)
-        return MetaModeList(filter(lambda x: x, mms.data.split('\0')))
+        return MetaModeList(list(filter(lambda x: x, mms.data.split('\0'))))
 
     def add_metamode(self, target, mm):
         '''provide a MetaMode string as input. return newly created MetaMode

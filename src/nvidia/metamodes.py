@@ -23,7 +23,7 @@ def res2array(res):
         c = res.split('x')
         try:
             if len(c) != 2: raise ValueError
-            return map(int, c)
+            return list(map(int, c))
         except ValueError:
             raise Exception('malformed resolution: %s'%res)
     elif type(res)==tuple or type(res)==list:
@@ -61,7 +61,7 @@ class MetaModeDisplay:
         except: pass
         if len(dmmparts) > 0 and dmmparts[0][0]=='@':
             self.virtual = dmmparts.pop(0)
-            self.virtual = map(int, self.virtual[1:].split('x'))
+            self.virtual = list(map(int, self.virtual[1:].split('x')))
         if len(dmmparts) > 0:
             r = re.match(r'^([+-]\d+)([+-]\d+)$', dmmparts.pop(0))
             if not r: raise ValueError('malformed metamode portion (bad position): %s'%value)
@@ -103,7 +103,6 @@ class MetaModeDisplay:
         return bool(self.display) and bool(self.physical)
 
 
-
 class MetaMode:
     '''A MetaMode line'''
 
@@ -128,7 +127,7 @@ class MetaMode:
             opts = None
         # parse options
         if opts:
-            opts = map(lambda x: x.strip(), opts.split(','))
+            opts = list(map(lambda x: x.strip(), opts.split(',')))
             for opt in opts:
                 #key, sep, val = opt.partition('=') # python>=2.5
                 key, val = (opt.split('=',1)+['']*2)[:2]
@@ -157,8 +156,8 @@ class MetaMode:
         else:
             # Only compare metamodes, options don't matter. Displays that
             # have NULL (for which x.physical isn't defined) don't count.
-            displaysS = filter(lambda x: x.physical, self.metamodes)
-            displaysO = filter(lambda x: x.physical, other.metamodes)
+            displaysS = list(filter(lambda x: x.physical, self.metamodes))
+            displaysO = list(filter(lambda x: x.physical, other.metamodes))
             if len(displaysS) != len(displaysO): return False
             for m in displaysS:
                 if not m in displaysO: return False
@@ -296,7 +295,7 @@ if __name__ == '__main__':
 
     # make sure all are processed
     if len(mms) != len(metamodesstr):
-        print('ERROR: length %d != %d'%( len(mms), len(metamodestr) ))
+        print('ERROR: length %d != %d'%( len(mms), len(metamodesstr) ))
 
     # access all of them by id
     for i,mm in enumerate(mms):

@@ -72,6 +72,6 @@ class Hook(Plugin):
 
     def _translate_displays(self, displays):
         '''replace invalid variable name characters for displays'''
-        return map(lambda d: d.replace('-','_'), displays)
+        return list(map(lambda d: d.replace('-','_'), displays))
 
 # vim:ts=4:sw=4:expandtab:

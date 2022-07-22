@@ -15,6 +15,7 @@
 
 import logging
 
+
 class Plugin:
     def __init__(self, disper):
         self.disper = disper

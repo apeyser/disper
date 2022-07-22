@@ -32,12 +32,15 @@ import gtk.gdk
 
 import xrandr
 
-#FIXME: Perhaps using gdk_x11_screen_get_xscreen would be more elegant
+
+# FIXME: Perhaps using gdk_x11_screen_get_xscreen would be more elegant
+
 
 def get_default_screen_config():
     dpy = gtk.gdk.display_get_default()
     screen = dpy.get_default_screen()
     return get_screen_config(screen)
+
 
 def get_screen_config(screen):
     """Returns the XRandR screen config instance for the given gtk.gdk.Screen"""

@@ -78,7 +78,7 @@ class Switcher:
         # always put primary display in front
         if self.get_primary_display() in self._displays:
             self._displays = [self.get_primary_display()] + \
-                filter(lambda x: x!=self.get_primary_display(), self._displays)
+                list(filter(lambda x: x!=self.get_primary_display(), self._displays))
         return self._displays
 
     def get_resolutions_display(self, disp):

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-###############################################################################
+
 # disper.py - main disper
 #
 # This program is free software; you can redistribute it and/or modify
@@ -25,6 +25,7 @@ from plugins import Plugins
 import build
 
 # make sure to handle SystemExit when using this class in a 3rd-party program
+
 
 class Disper:
 
@@ -396,6 +397,7 @@ def main():
     disper = Disper()
     disper.options_parse(sys.argv[1:])
     disper.switch()
+
 
 if __name__ == "__main__":
     # Python 2.3 doesn't support arguments to basicConfig()

@@ -18,6 +18,7 @@ import logging
 from .hook import Hook
 from .plugin import Plugin
 
+
 class Plugins:
 
     def __init__(self, disper):
@@ -50,7 +51,7 @@ class Plugins:
                   to execute; or 'user' for all user-installed plugins or
                   'all' to include all user and system plugins or 'none' for none.'''
         if not isinstance(plugins, list):
-            plugins = map(lambda x: x.strip(), ','.split(plugins))
+            plugins = list(map(lambda x: x.strip(), ','.split(plugins)))
         # now expand 'none', 'user' and 'all' plugins
         useplugins = []
         for i in range(len(plugins)):

@@ -1,5 +1,5 @@
 #!/bin/sh
-###############################################################################
+
 # disper hook - show relevant environment variables for debugging
 #
 # This program is free software; you can redistribute it and/or modify

@@ -1,4 +1,4 @@
-###############################################################################
+
 # nvsettings.py - nvidia-settings configuration file parser
 #
 # This program is free software; you can redistribute it and/or modify
@@ -15,11 +15,11 @@
 
 _all = ['NVidiaSettings', 'Screen', 'GPU']
 
-import os
 import re
 import xnet
 import socket
 from nvtarget import *
+
 
 class NVidiaSettings:
     '''nvidia-settings configuration file reader/parser'''
@@ -40,7 +40,7 @@ class NVidiaSettings:
             # remove comments
             l = l.split('#',2)[0]
             # remove all spaces (as nvidia-settings does in parse.c)
-            l = filter(lambda s: not s.isspace(), l)
+            l = list(filter(lambda s: not s.isspace(), l))
             # skip lines without an option assignment
             if not l: continue
             # parse and store
@@ -63,13 +63,13 @@ class NVidiaSettings:
 
         TODO: make more specific targets in configfile get precedence.'''
         # option name
-        opts = filter(lambda x: x[1]==option, self._opts)
+        opts = list(filter(lambda x: x[1]==option, self._opts))
         # device
         # TODO it's unclear if multiple devices may be specified for a single
         #      option in the configuration file
         if device:
-            optsdfl = filter(lambda x: not x[2], opts)
-            opts = filter(lambda x: x[2]==device, opts)
+            optsdfl = list(filter(lambda x: not x[2], opts))
+            opts = list(filter(lambda x: x[2]==device, opts))
             if not opts: opts = optsdfl
         if not target: target = Screen(0)
         # target: only current host for display
@@ -163,7 +163,7 @@ if __name__ == '__main__':
             print('ERROR: DigitalVibrance[CRT-9]')
 
         if nvs.query(str, 'TestAttr') != 'hi_there':
-            print('ERROR: TestAttr'
+            print('ERROR: TestAttr')
         if nvs.query(str, 'OtherAttr') != 'hi_here':
             print('ERROR: OtherAttr')
 

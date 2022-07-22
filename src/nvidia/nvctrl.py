@@ -1,4 +1,4 @@
-###############################################################################
+
 # nvctrl.py - nvidia NV-CONTROL X extension functions in python
 #
 # this file contains only a subset of the NV-CONTROL functions,
@@ -25,7 +25,7 @@ import minx
 
 from nvtarget import *
 
-###############################################################################
+
 # NV-CONTROL integer attrs. this list contains constants defined in both
 # NVCtrl.h and NVCtrlAttributes.h. these constants are the attr codes
 #
@@ -87,7 +87,7 @@ NV_CTRL_BINARY_DATA_VCSCS_USED_BY_GPU   = 9   #/* R-DG */
 
 NV_CTRL_BINARY_DATA_LAST_ATTRIBUTE      = NV_CTRL_BINARY_DATA_VCSCS_USED_BY_GPU
 
-###############################################################################
+
 # extensions defined in NVCtrlAttributes.h
 #
 NV_CTRL_ATTR_BASE                       = NV_CTRL_LAST_ATTRIBUTE + 1
@@ -102,7 +102,7 @@ NV_CTRL_ATTR_EXT_LAST_ATTRIBUTE         = (NV_CTRL_ATTR_EXT_XV_BLITTER_PRESENT)
 NV_CTRL_ATTR_NV_BASE                    = (NV_CTRL_ATTR_EXT_LAST_ATTRIBUTE + 1)
 
 
-###############################################################################
+
 # NV-CONTROL string attrs. this list contains constants defined in both
 # NVCtrl.h and NVCtrlAttributes.h. these constants are the attr codes
 # for use with the string functions
@@ -133,7 +133,7 @@ NV_CTRL_STRING_OPERATION_BUILD_MODEPOOL = 3   # /* DG  */
 NV_CTRL_STRING_OPERATION_LAST_ATTRIBUTE = NV_CTRL_STRING_OPERATION_BUILD_MODEPOOL
 
 
-###############################################################################
+
 # NV-CONTROL major op numbers. these constants identify the request type
 #
 _X_nvCtrlQueryExtension                  = 0
@@ -147,7 +147,7 @@ _X_nvCtrlQueryTargetCount                = 24
 _X_nvCtrlStringOperation                 = 25
 
 
-###############################################################################
+
 # various lists that go with attrs, but are handled more compactly
 # this way. these lists are indexed by the possible values of their attrs
 # and are explained in NVCtrl.h
@@ -170,11 +170,9 @@ ATTRIBUTE_TYPE_XINERAMA             = 0x40
 ATTRIBUTE_TYPE_VCSC                 = 0x80
 
 
-
-
-###############################################################################
 # NV-CONTROL Query Extension
-#
+
+
 class _NVCtrlQueryExtensionRequest:
     '''this class wraps the NV-CONTROL query request.
     it requires the major self.opcode of NV-CONTROL as a
@@ -211,9 +209,9 @@ class _NVCtrlQueryExtensionReply:
             setattr( self, n, v )
 
 
-###############################################################################
 # NV-CONTROL Query Attribute
-#
+
+
 class _NVCtrlQueryAttributeRequest:
     '''this class wraps the NV-CONTROL query attr request.
     it requires the major opcode of NV-CONTROL, the display or gpu
@@ -257,9 +255,10 @@ class _NVCtrlQueryAttributeReply:
             setattr( self, n, v )
 
 
-###############################################################################
+
 # NV-CONTROL Set Attribute And Get Status
-#
+
+
 class _NVCtrlSetAttributeAndGetStatusRequest:
     def __init__(self,opcode,screen,display_mask,attr,value):
         self.encoding = minx.encode(
@@ -270,6 +269,7 @@ class _NVCtrlSetAttributeAndGetStatusRequest:
             minx.XData('CARD32',1,display_mask),
             minx.XData('CARD32',1,attr),
             minx.XData('INT32',1,value))
+
 
 class _NVCtrlSetAttributeAndGetStatusReply:
     def __init__(self,encoding):
@@ -289,10 +289,9 @@ class _NVCtrlSetAttributeAndGetStatusReply:
             setattr( self, n, v )
 
 
-
-###############################################################################
 # NV-CONTROL Query Target Count
-#
+
+
 class _NVCtrlQueryTargetCountRequest:
     '''this class wraps the NV-CONTROL query target count
     request. it requires the major opcode of NV-CONTROL and the
@@ -331,9 +330,8 @@ class _NVCtrlQueryTargetCountReply:
             setattr( self, n, v )
 
 
-###############################################################################
 # NV-CONTROL Query Binary Data
-#
+
 class _NVCtrlQueryBinaryDataRequest:
     '''this class wraps the NV-CONTROL query binary data request.
     it requires the major opcode of NV-CONTROL, the display or gpu
@@ -382,7 +380,7 @@ class _NVCtrlQueryBinaryDataReply:
         self.data = str(rs['data'])
 
 
-###############################################################################
+
 # NV-CONTROL Query String Attribute
 #
 class _NVCtrlQueryStringAttributeRequest:
@@ -430,7 +428,7 @@ class _NVCtrlQueryStringAttributeReply:
         if self.string is not None and self.string.endswith('\0'): self.string = self.string[:-1]
 
 
-###############################################################################
+
 # NV-CONTROL Set String Attribute
 #
 class _NVCtrlSetStringAttributeRequest:
@@ -465,7 +463,7 @@ class _NVCtrlSetStringAttributeReply:
             setattr( self, n, v )
 
 
-###############################################################################
+
 # NV-CONTROL Query Valid Attribute Values
 #
 class _NVCtrlQueryValidAttributeValuesRequest:
@@ -506,7 +504,7 @@ class _NVCtrlQueryValidAttributeValuesReply:
             setattr( self, n, v )
 
 
-###############################################################################
+
 # NV-CONTROL String Operation
 #
 class _NVCtrlStringOperationRequest:
@@ -550,7 +548,7 @@ class _NVCtrlStringOperationReply:
         self.string = str(rs['string'])
 
 
-###############################################################################
+
 # NV-CONTROL String Operation
 #
 class NVidiaControl:

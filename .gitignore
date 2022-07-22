@@ -1,5 +1,6 @@
 *.swp
 __pycache__/
+.idea/
 disper
 disper.1
 src/build.py.install

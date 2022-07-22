@@ -14,12 +14,14 @@
 # the terms and conditions of this license.
 
 # define sorted() for Python 2.3 and below
-try: sorted(())
+try:
+    sorted(())
 except:
     def sorted(obj):
         lnew = type(obj)(obj)
         lnew.sort()
         return lnew
+
 
 class Resolution:
     '''a single resolution with a width, height, and a sort weight.
@@ -48,9 +50,9 @@ class Resolution:
             pass
         elif type(val) == str:
             parts = val.split('@')
-            self.physical = map(int, parts[0].split('x',1))
+            self.physical = list(map(int, parts[0].split('x',1)))
             if len(parts)>1:
-                self.virtual = map(int, parts[1].split('x',1))
+                self.virtual = list(map(int, parts[1].split('x',1)))
             elif len(parts)>2:
                 raise TypeError('need zero or one virtual resolutions (@): '+val)
         elif type(val) in [list,tuple]:

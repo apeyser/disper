@@ -1,4 +1,4 @@
-###############################################################################
+
 # nvtarget.py - targets for nvidia commands
 #
 # This program is free software; you can redistribute it and/or modify
@@ -18,7 +18,7 @@ NV_CTRL_TARGET_TYPE_GPU = 1
 NV_CTRL_TARGET_TYPE_FRAMELOCK = 2
 NV_CTRL_TARGET_TYPE_VCSC = 3
 
-###############################################################################
+
 # Targets, to indicate where a command should be executed.
 #
 class Target:

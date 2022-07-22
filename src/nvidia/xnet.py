@@ -52,7 +52,7 @@ FamilyInternet6 = 6
 FamilyLocal     = 256
 
 
-###############################################################################
+
 # a simple Exception class to raise X connection errors
 #
 class XConnectionError(Exception):
@@ -64,7 +64,7 @@ class XConnectionError(Exception):
         return self.msg
 
 
-###############################################################################
+
 # get X display info
 #
 __display_re = re.compile(r'^([-a-zA-Z0-9._]*):([0-9]+)(\.([0-9]+))?$')
@@ -95,7 +95,7 @@ def get_X_display(display=None):
     return d, host, dno, screen
 
 
-###############################################################################
+
 # return a socket connected to X server port
 #
 def get_X_socket(host,dno):
@@ -117,7 +117,7 @@ def get_X_socket(host,dno):
 
     return s
 
-###############################################################################
+
 # parse .Xauthority file
 #
 def parse_Xauthority( filename=None ):
@@ -176,7 +176,7 @@ def parse_Xauthority( filename=None ):
     return entries
 
 
-###############################################################################
+
 # find an authority to connect with
 #
 def match_X_auth(family, address, dispno, elist, types=("MIT-MAGIC-COOKIE-1",)):
@@ -196,7 +196,7 @@ def match_X_auth(family, address, dispno, elist, types=("MIT-MAGIC-COOKIE-1",)):
             return None
 
 
-###############################################################################
+
 # return the connection authority
 #
 def get_X_auth(sock, dname, host, dno):
@@ -221,7 +221,7 @@ def get_X_auth(sock, dname, host, dno):
             return match_X_auth(family, addr, dno, al)
 
 
-###############################################################################
+
 # determine the byte order of architecture
 #
 def get_X_byteorder():

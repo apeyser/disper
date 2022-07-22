@@ -1,4 +1,4 @@
-###############################################################################
+
 # edid.py - EDID parsing routines
 #
 # code taken from xac-0.6_pre4
@@ -247,7 +247,6 @@ class Edid:
 			s = self.get_id_string()
 
 		return s.strip()
-			
 
 	def has_extension(self):
 		return unpack("B", self.edid[126])[0]
