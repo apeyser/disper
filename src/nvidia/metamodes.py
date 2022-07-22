@@ -296,16 +296,16 @@ if __name__ == '__main__':
 
     # make sure all are processed
     if len(mms) != len(metamodesstr):
-        print 'ERROR: length %d != %d'%( len(mms), len(metamodestr) )
+        print('ERROR: length %d != %d'%( len(mms), len(metamodestr) ))
 
     # access all of them by id
     for i,mm in enumerate(mms):
         if mms.find(mm.id).src != mm.src:
-            print 'ERROR: find by id failed for id %d' % mm.id
+            print('ERROR: find by id failed for id %d' % mm.id)
         if mms.find(str(mm)).src != mm.src:
-            print 'ERROR: find by str failed for id %d' % mm.id
+            print('ERROR: find by str failed for id %d' % mm.id)
         if MetaMode(metamodesstr[i]) != mm:
-            print 'ERROR: find by MetaMode failed for id %d' % mm.id
+            print('ERROR: find by MetaMode failed for id %d' % mm.id)
 
     # find variations in MetaMode strings
     for mm in [ 'CRT-0: 1024x768 @1024x768 +1024+0, DFP-0: 1024x768 @1024x768 +0+0',
@@ -313,33 +313,33 @@ if __name__ == '__main__':
                 '  CRT-0 :    1024x768   +1024+0   ,DFP-0   :  1024x768     +0+0    ',
                 'DFP-0: 1024x768 +0+0, CRT-0: 1024x768 +1024+0']:
         if not mms.find(mm) or mms.find(mm).id != 51:
-            print 'ERROR: find variation by str failed: %s' % mm
+            print('ERROR: find variation by str failed: %s' % mm)
 
     for mm in [ 'DFP-9: 640x480 @640x480 +640+0, DFP-2: 123x321 @567x765 +640+0',
                 'DFP-2: 123x321 @567x765 +640+0, DFP-9: 640x480 @640x480 +640+0',
                 ' DFP-2   :    123x321    @567x765  +640+0  ,  DFP-9 :    640x480    @640x480  +640+0  ']:
         if not mms.find(mm) or mms.find(mm).id != 63:
-            print 'ERROR: find variation by str failed: %s' % mm
+            print('ERROR: find variation by str failed: %s' % mm)
 
     # test bounding box sizes
     m = MetaMode('DFP-0: 800x600 +0+0, CRT-0: 800x600 +0+0')
     if m.bounding_size() != (800, 600):
-        print 'ERROR: bounding box size: %s'%m
+        print('ERROR: bounding box size: %s'%m)
     m = MetaMode('DFP-0: 800x600 @1000x800 +0+0, CRT-0: 800x600 +0+0')
     if m.bounding_size() != (1000, 800):
-        print 'ERROR: bounding box size: %s'%m
+        print('ERROR: bounding box size: %s'%m)
     m = MetaMode('DFP-0: 800x600 +0+0, CRT-0: 800x600 +900+0')
     if m.bounding_size() != (1700, 600):
-        print 'ERROR: bounding box size: %s'%m
+        print('ERROR: bounding box size: %s'%m)
     m = MetaMode('DFP-0: 800x600 +0-300, CRT-0: 800x600 +0+0')
     if m.bounding_size() != (800, 900):
-        print 'ERROR: bounding box size: %s'%m
+        print('ERROR: bounding box size: %s'%m)
 
     # test metamode creation stuff
     m1 = metamode_clone(['DFP-0','DFP-1','TV-2'], '800x600')
     m2 = MetaMode('DFP-0: 800x600 +0+0, DFP-1: 800x600 +0+0, TV-2: 800x600 +0+0')
     if m1 != m2:
-        print 'ERROR: metamode_clone: %s'%str(m2)
+        print('ERROR: metamode_clone: %s'%str(m2))
     for dir,mmline in [
             ('right', 'CRT-0: 800x600   +0+000, DFP-0: 200x300 +800+000, TV-0: 640x480 +1000+000'),
            #('left',  'CRT-0: 800x600   +0+000, DFP-0: 200x300 -200+000, TV-0: 640x480  -840+000'),
@@ -351,9 +351,9 @@ if __name__ == '__main__':
         m = metamode_add_extend(m, dir, 'DFP-0', [200,300])
         m = metamode_add_extend(m, dir, 'TV-0', [640,480])
         if m != MetaMode(mmline):
-            print 'ERROR: metamode_extend %s: %s'%(dir,str(m))
+            print('ERROR: metamode_extend %s: %s'%(dir,str(m)))
 
-    print 'tests finished.'
+    print('tests finished.')
 
 
 # vim:ts=4:sw=4:expandtab:

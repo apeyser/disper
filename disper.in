@@ -31,7 +31,7 @@ try:
 except SystemExit:
     # no error on sys.exit() for Python 2.4 and below
     pass
-except Exception,e:
+except Exception as e:
     logging.error(str(e))
     sys.exit(1)
 

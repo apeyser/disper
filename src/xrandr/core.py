@@ -728,68 +728,68 @@ class Screen:
     def print_info(self, verbose=False):
         """Prints some information about the detected screen and its outputs"""
         xrandr._check_required_version((1,0))
-        print "Screen %s: minimum %s x %s, current %s x %s, maximum %s x %s" %\
+        print("Screen %s: minimum %s x %s, current %s x %s, maximum %s x %s" %\
               (self._screen,
                self._width_min, self._height_min,
                self._width, self._height,
-               self._width_max, self._height_max)
-        print "          %smm x %smm" % (self._width_mm, self._height_mm)
-        print "Crtcs: %s" % len(self.crtcs)
+               self._width_max, self._height_max))
+        print("          %smm x %smm" % (self._width_mm, self._height_mm))
+        print("Crtcs: %s" % len(self.crtcs))
         if verbose:
-            print "Modes (%s):" % self._resources.contents.nmode
+            print("Modes (%s):" % self._resources.contents.nmode)
             modes = self._resources.contents.modes
             for i in range(self._resources.contents.nmode):
-                print "  %s - %sx%s" % (modes[i].name,
+                print("  %s - %sx%s" % (modes[i].name,
                                        modes[i].width,
-                                       modes[i].height)
+                                       modes[i].height))
         i = 0
-        print "Sizes @ Refresh Rates:"
+        print("Sizes @ Refresh Rates:")
         for s in self.get_available_sizes():
-            print "  [%s] %s x %s @ %s" % (i, s.width, s.height,
-                                           self.get_available_rates_for_size_index(i))
+            print("  [%s] %s x %s @ %s" % (i, s.width, s.height,
+                                           self.get_available_rates_for_size_index(i)))
             i += 1
-        print "Rotations:",
+        print("Rotations:")
         rots = self.get_available_rotations()
-        if rots & xrandr.RR_ROTATE_0: print "normal",
-        if rots & xrandr.RR_ROTATE_90: print "right",
-        if rots & xrandr.RR_ROTATE_180: print "inverted",
-        if rots & xrandr.RR_ROTATE_270: print "left",
-        print ""
-        print "Outputs:"
+        if rots & xrandr.RR_ROTATE_0: print("normal")
+        if rots & xrandr.RR_ROTATE_90: print("right")
+        if rots & xrandr.RR_ROTATE_180: print("inverted")
+        if rots & xrandr.RR_ROTATE_270: print("left")
+        print("")
+        print("Outputs:")
         for o in self.outputs.keys():
             output = self.outputs[o]
-            print "  %s"  % o,
+            print("  %s"  % o)
             if output.is_connected():
-                print "(%smm x %smm)" % (output.get_physical_width(),
-                                         output.get_physical_height())
+                print("(%smm x %smm)" % (output.get_physical_width(),
+                                         output.get_physical_height()))
                 modes = output.get_available_modes()
-                print "    Modes:"
+                print("    Modes:")
                 for m in range(len(modes)):
                     mode = modes[m]
                     refresh = mode.dotClock / (mode.hTotal * mode.vTotal)
-                    print "      [%s] %s x %s @ %s" % (m,
+                    print("      [%s] %s x %s @ %s" % (m,
                                                        mode.width,
                                                        mode.height,
-                                                       refresh),
+                                                       refresh))
                     if mode.id == output._mode:
-                        print "*",
+                        print("*")
                     if m == output.get_preferred_mode():
-                        print "(preferred)",
-                    print ""
-                print "    Rotations:",
+                        print("(preferred)")
+                    print("")
+                print("    Rotations:")
                 rots = output.get_available_rotations()
-                if rots & xrandr.RR_ROTATE_0: print "normal",
-                if rots & xrandr.RR_ROTATE_90: print "right",
-                if rots & xrandr.RR_ROTATE_180: print "inverted",
-                if rots & xrandr.RR_ROTATE_270: print "left",
-                print ""
+                if rots & xrandr.RR_ROTATE_0: print("normal")
+                if rots & xrandr.RR_ROTATE_90: print("right")
+                if rots & xrandr.RR_ROTATE_180: print("inverted")
+                if rots & xrandr.RR_ROTATE_270: print("left")
+                print("")
             else: 
-                print "(not connected)"
+                print("(not connected)")
             if verbose:
-                print "    Core properties:"
+                print("    Core properties:")
                 for (f,t) in output._info.contents._fields_:
-                    print "      %s: %s" % (f,
-                                            getattr(output._info.contents, f))
+                    print("      %s: %s" % (f,
+                                            getattr(output._info.contents, f)))
 
     def get_outputs(self):
         """Returns the outputs of the screen"""

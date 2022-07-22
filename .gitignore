@@ -1,0 +1,5 @@
+*.swp
+__pycache__/
+disper
+disper.1
+src/build.py.install

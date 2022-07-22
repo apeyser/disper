@@ -27,12 +27,12 @@ class Edid:
 		self.valid = 1
 		### Parse the passed in edid
 		if edid == None:
-#			print "Error: Empty EDID"
+#			print("Error: Empty EDID")
 			self.valid = 0
 			edid = "\0" * 128
 		### Make sure it a valid edid (header matches)
 		if edid[:8] != EDID_HEADER:
-#			print "Error: Invalid EDID"
+#			print("Error: Invalid EDID")
 			self.valid = 0
 			edid = "\0" * 128
 		### Check the checksum 
@@ -40,7 +40,7 @@ class Edid:
 		for i in range(128):
 			sum = (sum + int(unpack('B', edid[i])[0])) & 0xFF
 		if sum != 0:
-#			print "Checksum failed, result should be 0, instead it's:", sum
+#			print("Checksum failed, result should be 0, instead it's:", sum)
 			self.valid = 0
 			edid = "\0" * 128
 

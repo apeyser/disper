@@ -16,7 +16,7 @@
 import os
 import logging
 import subprocess
-from plugin import Plugin
+from .plugin import Plugin
 
 class Hook(Plugin):
     '''A hook is a plugin that executes an external command'''

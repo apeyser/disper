@@ -146,41 +146,41 @@ if __name__ == '__main__':
 
     try:
         if nvs.query(str, 'Foo') != 'Bar':
-            print 'ERROR: Foo'
+            print('ERROR: Foo')
         if nvs.query(int, 'SyncToVBlank') != 0:
-            print 'ERROR: SyncToVBlank'
+            print('ERROR: SyncToVBlank')
         if nvs.query(int, 'SyncToVBlank', Screen(0)) != 0:
-            print 'ERROR: 0/SyncToVBlank'
+            print('ERROR: 0/SyncToVBlank')
         if nvs.query(int, 'SyncToVBlank', Screen(1)) != 0:
-            print 'ERROR: 0.1/SyncToVBlank'
+            print('ERROR: 0.1/SyncToVBlank')
         if nvs.query(int, 'DigitalVibrance') != 0:
-            print 'ERROR: DigitalVibrance'
+            print('ERROR: DigitalVibrance')
         if nvs.query(int, 'DigitalVibrance', None, 'DFP-0') != 1:
-            print 'ERROR: DigitalVibrance[DFP-0]'
+            print('ERROR: DigitalVibrance[DFP-0]')
         if nvs.query(int, 'DigitalVibrance', None, 'CRT-0') != 2:
-            print 'ERROR: DigitalVibrance[CRT-0]'
+            print('ERROR: DigitalVibrance[CRT-0]')
         if nvs.query(int, 'DigitalVibrance', None, 'CRT-9') != 0:
-            print 'ERROR: DigitalVibrance[CRT-9]'
+            print('ERROR: DigitalVibrance[CRT-9]')
 
         if nvs.query(str, 'TestAttr') != 'hi_there':
-            print 'ERROR: TestAttr'
+            print('ERROR: TestAttr'
         if nvs.query(str, 'OtherAttr') != 'hi_here':
-            print 'ERROR: OtherAttr'
+            print('ERROR: OtherAttr')
 
         # TODO
         #if nvs.query(str, 'OtherFoo') != 'BadBar':
-        #    print 'ERROR: OtherFoo'
+        #    print('ERROR: OtherFoo')
         if nvs.query(str, 'OtherFoo', Screen(0)) != 'OtherBar':
-            print 'ERROR: 0/OtherFoo'
+            print('ERROR: 0/OtherFoo')
         if nvs.query(str, 'OtherFoo', Screen(1)) != 'MoreBar':
-            print 'ERROR: 0.1/OtherFoo'
+            print('ERROR: 0.1/OtherFoo')
 
         os.environ['DISPLAY'] = 'localhost:1'
         if nvs.query(int, 'SyncToVBlank') != 321:
-            print 'ERROR: 1/SyncToVBlank'
+            print('ERROR: 1/SyncToVBlank')
         os.environ['DISPLAY'] = 'localhost:2'
         if nvs.query(int, 'SyncToVBlank') != None:
-            print 'ERROR: 2/SyncToVBlank'
+            print('ERROR: 2/SyncToVBlank')
 
     finally:
         os.unlink(tmpfilename)

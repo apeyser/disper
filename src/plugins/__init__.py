@@ -15,8 +15,8 @@
 
 import os
 import logging
-from hook import Hook
-from plugin import Plugin
+from .hook import Hook
+from .plugin import Plugin
 
 class Plugins:
 
@@ -49,7 +49,8 @@ class Plugins:
            @param plugins comma-separated list or Python list of plugin names
                   to execute; or 'user' for all user-installed plugins or
                   'all' to include all user and system plugins or 'none' for none.'''
-        if not isinstance(plugins, list): plugins = map(lambda x: x.strip(), ','.split(plugins))
+        if not isinstance(plugins, list):
+            plugins = map(lambda x: x.strip(), ','.split(plugins))
         # now expand 'none', 'user' and 'all' plugins
         useplugins = []
         for i in range(len(plugins)):

@@ -15,8 +15,8 @@
 
 import logging
 
-from edid import Edid
-from resolutions import *
+from .edid import Edid
+from .resolutions import *
 
 class Switcher:
 
