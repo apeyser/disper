@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
 # disper - executable wrapper for disper
-
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 3 of the License, or
 # (at your option) any later version.
-
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
@@ -16,14 +16,17 @@
 
 import logging
 import sys
-sys.path.append('#PREFIX#/share/disper/src')
+
+sys.path.append("#PREFIX#/share/disper/src")
 
 import disper
 
 # Python 2.3 doesn't support arguments to basicConfig()
-try: logging.basicConfig(format='%(message)s')
-except: logging.basicConfig()
-logger = logging.getLogger('disper')
+try:
+    logging.basicConfig(format="%(message)s")
+except:
+    logging.basicConfig()
+logger = logging.getLogger("disper")
 logger.setLevel(logging.WARNING)
 
 try:
@@ -34,5 +37,3 @@ except SystemExit:
 except Exception as e:
     logging.error(str(e))
     sys.exit(1)
-
-
