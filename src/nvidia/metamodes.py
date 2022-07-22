@@ -118,7 +118,7 @@ class MetaModeDisplay:
     def __ne__(self, other):
         return not self.__eq__(other)
 
-    def __nonzero__(self):
+    def __bool__(self):
         return bool(self.display) and bool(self.physical)
 
 
@@ -147,7 +147,7 @@ class MetaMode:
             opts = None
         # parse options
         if opts:
-            opts = list(map(lambda x: x.strip(), opts.split(",")))
+            opts = [x.strip() for x in opts.split(",")]
             for opt in opts:
                 # key, sep, val = opt.partition('=') # python>=2.5
                 key, val = (opt.split("=", 1) + [""] * 2)[:2]
@@ -163,7 +163,7 @@ class MetaMode:
     def __str__(self):
         s = ""
         s += ", ".join(
-            map(lambda x: "%s=%s" % (x, self.options[x]), self.options.keys())
+            ["%s=%s" % (x, self.options[x]) for x in list(self.options.keys())]
         )
         s += " :: "
         s += ", ".join(map(str, self.metamodes))
@@ -178,8 +178,8 @@ class MetaMode:
         else:
             # Only compare metamodes, options don't matter. Displays that
             # have NULL (for which x.physical isn't defined) don't count.
-            displaysS = list(filter(lambda x: x.physical, self.metamodes))
-            displaysO = list(filter(lambda x: x.physical, other.metamodes))
+            displaysS = [x for x in self.metamodes if x.physical]
+            displaysO = [x for x in other.metamodes if x.physical]
             if len(displaysS) != len(displaysO):
                 return False
             for m in displaysS:
@@ -190,7 +190,7 @@ class MetaMode:
     def __ne__(self, other):
         return not self.__eq__(other)
 
-    def __nonzero__(self):
+    def __bool__(self):
         return len(self.metamodes) > 0
 
     def bounding_size(self):
@@ -247,9 +247,7 @@ def metamode_clone(displays, physical, virtual=None):
         virtual = " @%dx%d" % (virtual[0], virtual[1])
     else:
         virtual = ""
-    mmline = ", ".join(
-        map(lambda d: "%s: %s%s +0+0" % (d, physical, virtual), displays)
-    )
+    mmline = ", ".join(["%s: %s%s +0+0" % (d, physical, virtual) for d in displays])
     return MetaMode(mmline)
 
 
@@ -400,6 +398,3 @@ if __name__ == "__main__":
             print("ERROR: metamode_extend %s: %s" % (dir, str(m)))
 
     print("tests finished.")
-
-
-# vim:ts=4:sw=4:expandtab:

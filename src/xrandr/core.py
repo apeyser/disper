@@ -458,7 +458,7 @@ class Crtc:
     def supports_output(self, output):
         """Check if the output can be used by the crtc.
         See check_crtc_for_output in xrandr.c"""
-        if not self.xid in map(lambda c: c.xid, output.get_crtcs()):
+        if not self.xid in [c.xid for c in output.get_crtcs()]:
             return False
         if len(self._outputs):
             for other in self._outputs:
@@ -770,7 +770,7 @@ class Screen:
 
     def get_output_by_id(self, id):
         """Returns the output of the screen with the given xid or None"""
-        for o in self.outputs.values():
+        for o in list(self.outputs.values()):
             if o.id == id:
                 return o
         return None
@@ -817,7 +817,7 @@ class Screen:
             print("left")
         print("")
         print("Outputs:")
-        for o in self.outputs.keys():
+        for o in list(self.outputs.keys()):
             output = self.outputs[o]
             print("  %s" % o)
             if output.is_connected():
@@ -860,11 +860,11 @@ class Screen:
     def get_outputs(self):
         """Returns the outputs of the screen"""
         xrandr._check_required_version((1, 2))
-        return self.outputs.values()
+        return list(self.outputs.values())
 
     def get_output_names(self):
         xrandr._check_required_version((1, 2))
-        return self.outputs.keys()
+        return list(self.outputs.keys())
 
     def set_size(self, width, height, width_mm, height_mm):
         """Apply the given pixel and physical size to the screen"""
@@ -888,7 +888,7 @@ class Screen:
         self._calculate_size()
 
         # Assign all active outputs to crtcs
-        for output in self.outputs.values():
+        for output in list(self.outputs.values()):
             if not output._mode or output._crtc:
                 continue
             for crtc in output.get_crtcs():

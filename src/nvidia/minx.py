@@ -19,7 +19,7 @@
 import struct
 import socket
 from platform import architecture
-import xnet
+from . import xnet
 
 
 __XFORMATBYTES = {
@@ -85,6 +85,8 @@ exceeds the maximum length accepted by the server.",
     17: "Implementation error. The server does not implement some aspect of the \
 request.",
 }
+# TODO(wieczorek1990): Unused?
+_XServerError__XERRORMSG = __XERRORMSG
 
 
 class XData:
@@ -227,7 +229,7 @@ class XConnectRefusedReply:
             XData("STRING8", "sz_reason", "reason"),
         )
 
-        for n, v in xreply.iteritems():
+        for n, v in xreply.items():
             setattr(self, n, v)
 
 
@@ -262,7 +264,7 @@ class XConnectAcceptedReply:
             XData("STRING8", "sz_vendor", "vendor"),
         )
 
-        for n, v in xreply.iteritems():
+        for n, v in xreply.items():
             setattr(self, n, v)
 
         self.pixmap_formats = []
@@ -342,7 +344,7 @@ class XConnectAuthenticateReply:
             XData("CARD16", 1, "sz_additional"),
         )
 
-        for n, v in xreply.iteritems():
+        for n, v in xreply.items():
             setattr(self, n, v)
 
         rs, ad = decode(ad, XData("STRING8", self.xdata["sz_additional"] * 4, "reason"))
@@ -386,7 +388,7 @@ class XQueryExtensionReply:
             XData("PAD", 20, "unused_2"),
         )
 
-        for n, v in xreply.iteritems():
+        for n, v in xreply.items():
             setattr(self, n, v)
 
 
@@ -417,7 +419,7 @@ class XListExtensionsReply:
             XData("PAD", 24, "unused"),
         )
 
-        for n, v in xreply.iteritems():
+        for n, v in xreply.items():
             setattr(self, n, v)
 
         self.names = []

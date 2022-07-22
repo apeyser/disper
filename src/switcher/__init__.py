@@ -36,7 +36,7 @@ class Switcher:
         try:
             # nVidia must be probed before XRandR because it uses XRandR in a
             # non-standard way
-            from swnvidia import NVidiaSwitcher
+            from .swnvidia import NVidiaSwitcher
 
             self.backend = NVidiaSwitcher()
             self.log.info("backend: nVidia")
@@ -46,7 +46,7 @@ class Switcher:
         except:
             pass
         try:
-            from swxrandr import XRandrSwitcher
+            from .swxrandr import XRandrSwitcher
 
             self.backend = XRandrSwitcher()
             self.log.info("backend: XRandR")
@@ -86,7 +86,7 @@ class Switcher:
         # always put primary display in front
         if self.get_primary_display() in self._displays:
             self._displays = [self.get_primary_display()] + list(
-                filter(lambda x: x != self.get_primary_display(), self._displays)
+                [x for x in self._displays if x != self.get_primary_display()]
             )
         return self._displays
 
@@ -136,6 +136,3 @@ class Switcher:
         for disp in displays:
             res[disp] = self.get_resolutions_display(disp)
         return res
-
-
-# vim:ts=4:sw=4:expandtab:

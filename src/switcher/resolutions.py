@@ -196,7 +196,7 @@ class ResolutionSelection(dict):
 
     def __str__(self):
         s = []
-        for disp, r in self.iteritems():
+        for disp, r in self.items():
             s.append("%s: %s" % (disp, r))
         return ", ".join(s)
 
@@ -206,7 +206,7 @@ class ResolutionCollection(dict):
 
     def __str__(self):
         s = []
-        for disp, rl in self.iteritems():
+        for disp, rl in self.items():
             s.append("%s: %s" % (disp, rl))
         return "\n".join(s)
 
@@ -216,7 +216,7 @@ class ResolutionCollection(dict):
         if len(self) == 0:
             return ResolutionList()
         common = None
-        for disp, rl in self.iteritems():
+        for disp, rl in self.items():
             rl = ResolutionList(rl)
             if not common:
                 common = rl
@@ -233,12 +233,12 @@ class ResolutionCollection(dict):
 
     def sort(self):
         """sort all contained resolution lists"""
-        for disp, rl in self.iteritems():
+        for disp, rl in self.items():
             rl.sort()
 
     def reverse(self):
         """reverse all contained resolution lists"""
-        for disp, rl in self.iteritems():
+        for disp, rl in self.items():
             rl.reverse()
 
     def select(self, choose=lambda disp, rl: sorted(rl)[-1]):
@@ -247,7 +247,7 @@ class ResolutionCollection(dict):
         sorted each contained ResolutionList with the best resolution at the
         end. Or if another selection criterion is wanted, it can be specified."""
         r = ResolutionSelection()
-        for disp, rl in self.iteritems():
+        for disp, rl in self.items():
             r[disp] = choose(disp, rl)
         return r
 
@@ -309,5 +309,3 @@ if __name__ == "__main__":
         print("ERROR: inplace sorting failed")
 
     print("all tests done.")
-
-# vim:ts=4:sw=4:expandtab:

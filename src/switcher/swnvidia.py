@@ -19,7 +19,7 @@ import logging
 
 import nvidia
 
-from resolutions import *
+from .resolutions import *
 
 
 class NVidiaSwitcher:
@@ -133,17 +133,17 @@ class NVidiaSwitcher:
         """restore a display configuration as exported by export_config()"""
         backend = displays = mmline = scaling = xio = None
         for l in cfg.splitlines():
-            key, sep, value = map(lambda s: s.strip(), l.partition(":"))
+            key, sep, value = [s.strip() for s in l.partition(":")]
             if key == "backend":
                 backend = value
             elif key == "associated displays":
-                displays = list(map(lambda s: s.strip(), value.split(",")))
+                displays = [s.strip() for s in value.split(",")]
             elif key == "metamode":
                 mmline = value.strip()
             elif key == "scaling":
-                scaling = list(map(lambda s: s.strip(), value.split(",")))
+                scaling = [s.strip() for s in value.split(",")]
             elif key == "xinerama info order":
-                xio = list(map(lambda s: s.strip(), value.split(",")))
+                xio = [s.strip() for s in value.split(",")]
 
         if not backend:
             self.log.warning("no backend specified, assuming nvidia")
@@ -183,9 +183,11 @@ class NVidiaSwitcher:
         xio = list(
             filter(
                 lambda x: x in assocdisplays,
-                map(
-                    lambda s: s.strip(),
-                    self.nv.get_xinerama_info_order(self.screen).split(","),
+                list(
+                    map(
+                        lambda s: s.strip(),
+                        self.nv.get_xinerama_info_order(self.screen).split(","),
+                    )
                 ),
             )
         )
@@ -233,7 +235,7 @@ class NVidiaSwitcher:
         """
 
         # make sure requested displays are connected (or metamode can't be created)
-        unconndisplays = list(filter(lambda x: x not in self.get_displays(), displays))
+        unconndisplays = [x for x in displays if x not in self.get_displays()]
         if len(unconndisplays) > 0:
             raise Exception(
                 "unconnected displays referenced, please connect: "
@@ -469,6 +471,3 @@ class NVidiaSwitcher:
             else:
                 scalings.append(res[1])
         return scalings
-
-
-# vim:ts=4:sw=4:expandtab:

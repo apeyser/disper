@@ -280,15 +280,15 @@ class Disper:
             self.options.plugins = "user"
         self.log.setLevel(self.options.debug)
         self.options.plugins = list(
-            map(lambda x: x.strip(), self.options.plugins.split(","))
+            [x.strip() for x in self.options.plugins.split(",")]
         )
         if self.options.displays != "auto":
             self.options.displays = list(
-                map(lambda x: x.strip(), self.options.displays.split(","))
+                [x.strip() for x in self.options.displays.split(",")]
             )
         if self.options.resolution not in ["auto", "max", "off"]:
             self.options.resolution = list(
-                map(lambda x: x.strip(), self.options.resolution.split(","))
+                [x.strip() for x in self.options.resolution.split(",")]
             )
         self.plugins.set_enabled(self.options.plugins)
 
@@ -305,9 +305,7 @@ class Disper:
             ]
             + os.environ.get("XDG_CONFIG_DIRS", "/etc/xdg/disper").split(":")
         )
-        xdg_config_dirs = list(
-            filter(lambda x: x and os.path.exists(x), xdg_config_dirs)
-        )
+        xdg_config_dirs = [x for x in xdg_config_dirs if x and os.path.exists(x)]
         # since later configuration files override previous ones, reverse order of reading
         # TODO allow override of action, since multiple actions would now conflict
         xdg_config_dirs = list(reversed(xdg_config_dirs))
@@ -465,7 +463,7 @@ class Disper:
         if ress == "max":  # max resolution for each
             # override auto-detection weights and get highest resolution
             ress = self.switcher().get_resolutions(displays)
-            for rl in ress.values():
+            for rl in list(ress.values()):
                 for r in rl:
                     r.weight = 0
             ress = ress.select()
@@ -522,7 +520,7 @@ class Disper:
         stage += 1
         if stage >= len(stages):
             stage = 0
-        self.argv = list(filter(lambda x: x != "-C" and x != "--cycle", self.argv))
+        self.argv = [x for x in self.argv if x != "-C" and x != "--cycle"]
         self.options_parse(shlex.split(stages[stage]))
         try:
             self.switch()
@@ -561,5 +559,3 @@ if __name__ == "__main__":
     except:
         logging.basicConfig()
     main()
-
-# vim:ts=4:sw=4:expandtab:

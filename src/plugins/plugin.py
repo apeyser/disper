@@ -20,6 +20,3 @@ class Plugin:
     def __init__(self, disper):
         self.disper = disper
         self.log = logging.getLogger("disper.plugin." + self.__class__.__name__.lower())
-
-
-# vim:ts=4:sw=4:expandtab:

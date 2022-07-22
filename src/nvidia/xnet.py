@@ -199,7 +199,7 @@ def get_X_auth(sock, dname, host, dno):
     if host:
         family = FamilyInternet
         octets = string.split(sock.getpeername()[0], ".")
-        addr = string.join(map(lambda x: chr(int(x)), octets), "")
+        addr = string.join([chr(int(x)) for x in octets], "")
     else:
         family = FamilyLocal
         addr = socket.gethostname()

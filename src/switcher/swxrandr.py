@@ -17,7 +17,7 @@ import logging
 
 import xrandr
 
-from resolutions import *
+from .resolutions import *
 
 
 class XRandrSwitcher:
@@ -30,8 +30,8 @@ class XRandrSwitcher:
     def get_displays(self):
         """return an array of connected displays"""
         displays = self.screen.get_outputs()
-        displays = filter(lambda o: o.is_connected(), displays)
-        displays = list(map(lambda o: o.name, displays))
+        displays = [o for o in displays if o.is_connected()]
+        displays = [o.name for o in displays]
         return displays
 
     def get_primary_display(self):
@@ -114,7 +114,7 @@ class XRandrSwitcher:
                     + ": available refresh rates for resolution "
                     + str(res)
                     + ": "
-                    + ", ".join(map(lambda o: "%d" % (o[1]), modes))
+                    + ", ".join(["%d" % (o[1]) for o in modes])
                 )
             if len(modes) == 0:
                 raise ValueError(
@@ -143,6 +143,3 @@ class XRandrSwitcher:
         if scaling == "default":
             return
         raise NotImplementedError("scaling not implemented for XRandR")
-
-
-# vim:ts=4:sw=4:expandtab:

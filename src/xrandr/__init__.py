@@ -82,7 +82,7 @@ RELATION_RIGHT_OF = 2
 RELATION_LEFT_OF = 3
 RELATION_SAME_AS = 4
 
-from core import Screen, xlib, rr
+from .core import Screen, xlib, rr
 
 
 xopendisplay = None

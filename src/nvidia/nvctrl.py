@@ -19,10 +19,10 @@
 # By using, editing and/or distributing this software you agree to
 # the terms and conditions of this license.
 
-import xnet
-import minx
+from . import xnet
+from . import minx
 
-from nvtarget import *
+from .nvtarget import *
 
 
 # NV-CONTROL integer attrs. this list contains constants defined in both
@@ -204,7 +204,7 @@ class _NVCtrlQueryExtensionReply:
             minx.XData("CARD32", 1, "padl8"),
         )
 
-        for n, v in xreply.iteritems():
+        for n, v in xreply.items():
             setattr(self, n, v)
 
 
@@ -253,7 +253,7 @@ class _NVCtrlQueryAttributeReply:
             minx.XData("CARD32", 1, "pad7"),
         )
 
-        for n, v in xreply.iteritems():
+        for n, v in xreply.items():
             setattr(self, n, v)
 
 
@@ -289,7 +289,7 @@ class _NVCtrlSetAttributeAndGetStatusReply:
             minx.XData("CARD32", 1, "pad7"),
         )
 
-        for n, v in xreply.iteritems():
+        for n, v in xreply.items():
             setattr(self, n, v)
 
 
@@ -333,7 +333,7 @@ class _NVCtrlQueryTargetCountReply:
             minx.XData("CARD32", 1, "padl8"),
         )
 
-        for n, v in xreply.iteritems():
+        for n, v in xreply.items():
             setattr(self, n, v)
 
 
@@ -383,7 +383,7 @@ class _NVCtrlQueryBinaryDataReply:
             minx.XData("CARD32", 1, "pad7"),
         )
 
-        for n, v in xreply.iteritems():
+        for n, v in xreply.items():
             setattr(self, n, v)
 
         rs, ad = minx.decode(ad, minx.XData("STRING8", self.n, "data"))
@@ -432,7 +432,7 @@ class _NVCtrlQueryStringAttributeReply:
             minx.XData("CARD32", 1, "pad7"),
         )
 
-        for n, v in xreply.iteritems():
+        for n, v in xreply.items():
             setattr(self, n, v)
 
         rs, ad = minx.decode(ad, minx.XData("STRING8", self.n, "string"))
@@ -474,7 +474,7 @@ class _NVCtrlSetStringAttributeReply:
             minx.XData("CARD32", 1, "pad7"),
         )
 
-        for n, v in xreply.iteritems():
+        for n, v in xreply.items():
             setattr(self, n, v)
 
 
@@ -517,7 +517,7 @@ class _NVCtrlQueryValidAttributeValuesReply:
             minx.XData("CARD32", 1, "perms"),
         )
 
-        for n, v in xreply.iteritems():
+        for n, v in xreply.items():
             setattr(self, n, v)
 
 
@@ -559,7 +559,7 @@ class _NVCtrlStringOperationReply:
             minx.XData("CARD32", 1, "padl7"),
         )
 
-        for n, v in xreply.iteritems():
+        for n, v in xreply.items():
             setattr(self, n, v)
 
         rs, ad = minx.decode(ad, minx.XData("STRING8", self.n, "string"))
@@ -795,6 +795,3 @@ class NVidiaControl:
             return num
         else:
             raise ValueError("Unrecognised display name: " + st)
-
-
-# vim:ts=4:sw=4:expandtab:

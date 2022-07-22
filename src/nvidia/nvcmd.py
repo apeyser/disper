@@ -20,9 +20,9 @@
 _all = ["GPU", "Screen", "NVidiaControl", "metamode_clone", "metamode_add_extend"]
 
 import re
-from nvctrl import *
-from nvctrl import NVidiaControl as NVidiaControlLowLevel
-from metamodes import *
+from .nvctrl import *
+from .nvctrl import NVidiaControl as NVidiaControlLowLevel
+from .metamodes import *
 
 __BUS_TYPES = ["AGP", "PCI", "PCI Express", "Integrated"]
 __OS_TYPES = ["Linux", "FreeBSD", "SunOS"]
@@ -213,7 +213,7 @@ class NVidiaControl(NVidiaControlLowLevel):
         of token=value pairs, separated from the ModeLine string with a
         "::"."""
         mls = self.query_binary_data(target, [display], NV_CTRL_BINARY_DATA_MODELINES)
-        return list(filter(lambda x: x, mls.data.split("\0")))
+        return [x for x in mls.data.split("\0") if x]
 
     def get_current_metamode(self, target):
         """returns the metamode currently being used by the specified X
@@ -234,7 +234,7 @@ class NVidiaControl(NVidiaControlLowLevel):
         of token=value paris, separated from the  MetaMode string with
         "::"."""
         mms = self.query_binary_data(target, [], NV_CTRL_BINARY_DATA_METAMODES)
-        return MetaModeList(list(filter(lambda x: x, mms.data.split("\0"))))
+        return MetaModeList([x for x in mms.data.split("\0") if x])
 
     def add_metamode(self, target, mm):
         """provide a MetaMode string as input. return newly created MetaMode
@@ -502,6 +502,3 @@ class NVidiaControl(NVidiaControlLowLevel):
             target, [], NV_CTRL_STRING_TWINVIEW_XINERAMA_INFO_ORDER, ", ".join(displays)
         )
         return res.flags
-
-
-# vim:ts=4:sw=4:expandtab:

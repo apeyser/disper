@@ -15,9 +15,9 @@
 _all = ["NVidiaSettings", "Screen", "GPU"]
 
 import re
-import xnet
+from . import xnet
 import socket
-from nvtarget import *
+from .nvtarget import *
 
 
 class NVidiaSettings:
@@ -39,7 +39,7 @@ class NVidiaSettings:
             # remove comments
             l = l.split("#", 2)[0]
             # remove all spaces (as nvidia-settings does in parse.c)
-            l = list(filter(lambda s: not s.isspace(), l))
+            l = [s for s in l if not s.isspace()]
             # skip lines without an option assignment
             if not l:
                 continue
@@ -63,13 +63,13 @@ class NVidiaSettings:
 
         TODO: make more specific targets in configfile get precedence."""
         # option name
-        opts = list(filter(lambda x: x[1] == option, self._opts))
+        opts = [x for x in self._opts if x[1] == option]
         # device
         # TODO it's unclear if multiple devices may be specified for a single
         #      option in the configuration file
         if device:
-            optsdfl = list(filter(lambda x: not x[2], opts))
-            opts = list(filter(lambda x: x[2] == device, opts))
+            optsdfl = [x for x in opts if not x[2]]
+            opts = [x for x in opts if x[2] == device]
             if not opts:
                 opts = optsdfl
         if not target:
@@ -199,5 +199,3 @@ if __name__ == "__main__":
 
     finally:
         os.unlink(tmpfilename)
-
-# vim:ts=4:sw=4:expandtab:

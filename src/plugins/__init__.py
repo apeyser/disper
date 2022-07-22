@@ -50,17 +50,17 @@ class Plugins:
                to execute; or 'user' for all user-installed plugins or
                'all' to include all user and system plugins or 'none' for none."""
         if not isinstance(plugins, list):
-            plugins = list(map(lambda x: x.strip(), ",".split(plugins)))
+            plugins = [x.strip() for x in ",".split(plugins)]
         # now expand 'none', 'user' and 'all' plugins
         useplugins = []
         for i in range(len(plugins)):
             if plugins[i] == "none":
                 useplugins = []
             elif plugins[i] == "user":
-                useplugins += self._plugins_user.keys()
+                useplugins += list(self._plugins_user.keys())
             elif plugins[i] == "all":
-                useplugins += self._plugins.keys()
-            elif plugins[i] in self._plugins.keys():
+                useplugins += list(self._plugins.keys())
+            elif plugins[i] in list(self._plugins.keys()):
                 useplugins.append(plugins[i])
             else:
                 self.log.warning("Ignoring nonexistant plugin: " + plugins[i])
@@ -106,6 +106,3 @@ class Plugins:
                 if os.path.isfile(path):
                     hooks.append(path)
         return hooks
-
-
-# vim:ts=4:sw=4:expandtab:
