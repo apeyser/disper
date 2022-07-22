@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Python-XRandR provides a high level API for the XRandR extension of the
-# X.org server. XRandR allows to configure resolution, refresh rate, rotation 
+# X.org server. XRandR allows to configure resolution, refresh rate, rotation
 # of the screen and multiple outputs of graphics cards.
 #
 # Copyright 2007 © Sebastian Heinlein <sebastian.heinlein@web.de>
@@ -38,9 +38,10 @@ __author__ = "Sebastian Heinlein, Michael Vogt"
 __version__ = "0.1.1.x"
 __status__ = "development"
 
-from ctypes import *
 import os
+from ctypes import *
 
+from . import core
 
 RR_ROTATE_0 = 1
 RR_ROTATE_90 = 2
@@ -81,10 +82,14 @@ RELATION_RIGHT_OF = 2
 RELATION_LEFT_OF = 3
 RELATION_SAME_AS = 4
 
-from core import Screen, xlib, rr
+from .core import Screen, xlib
 
 xopendisplay = None
-class Display(Structure): pass
+
+
+class Display(Structure):
+    pass
+
 
 def get_display(name):
     global xopendisplay
@@ -93,35 +98,42 @@ def get_display(name):
         xopendisplay.restype = POINTER(Display)
     return xopendisplay(name)
 
+
 def get_current_display():
     """Returns the currently used display"""
     display_url = os.getenv("DISPLAY")
     dpy = get_display(display_url)
     return dpy
 
+
 def get_current_screen():
     """Returns the currently used screen"""
     dpy = get_current_display()
-    if not dpy: return None
+    if not dpy:
+        return None
     screen = Screen(dpy)
     return screen
+
 
 def get_screen_of_display(display, count):
     """Returns the screen of the given display"""
     dpy = get_display(display)
     return Screen(dpy, count)
 
+
 def get_version():
     """Returns a tuple containing the major and minor version of the xrandr
-       extension or None if the extension is not available"""
+    extension or None if the extension is not available"""
     major = c_int()
     minor = c_int()
     dpy = get_current_display()
-    if not dpy: return None
+    if not dpy:
+        return None
     res = core.rr.XRRQueryVersion(dpy, byref(major), byref(minor))
     if res:
         return (major.value, minor.value)
     return None
+
 
 def has_extension():
     """Returns True if the xrandr extension is available"""
@@ -129,12 +141,12 @@ def has_extension():
         return True
     return False
 
+
 def _check_required_version(version):
     """Raises an exception if the given or a later version of xrandr is not
-       available"""
+    available"""
     if XRANDR_VERSION == None or XRANDR_VERSION < version:
-        raise UnsupportedRRError(version, XRANDR_VERSION)
+        raise core.UnsupportedRRError(version, XRANDR_VERSION)
+
 
 XRANDR_VERSION = get_version()
-
-# vim:ts=4:sw=4:et

@@ -1,3 +1,9 @@
+disper (0.4.0) unstable; urgency=low
+
+    * Python 3 support
+
+ -- Łukasz Wieczorek <wieczorek1990@gmail.com>  Fri, 22 Jul 2022 21:52:45 +0200
+
 disper (0.3.1) unstable; urgency=low
 
   * New point release
