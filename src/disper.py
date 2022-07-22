@@ -31,7 +31,7 @@ class Disper:
 
     # static information
     name = "disper"
-    version = "0.3.1.99"
+    version = "0.4.0"
     prefix = build.prefix
     prefix_share = build.prefix_share
 
