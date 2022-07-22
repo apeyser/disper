@@ -26,13 +26,12 @@
 # xlib c code.
 
 
-import socket
+import fcntl
 import os
 import re
-import struct
+import socket
 import string
-
-import fcntl
+import struct
 
 if hasattr(fcntl, "F_SETFD"):
     F_SETFD = fcntl.F_SETFD

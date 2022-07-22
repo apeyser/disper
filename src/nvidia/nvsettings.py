@@ -15,8 +15,9 @@
 _all = ["NVidiaSettings", "Screen", "GPU"]
 
 import re
-from . import xnet
 import socket
+
+from . import xnet
 from .nvtarget import *
 
 

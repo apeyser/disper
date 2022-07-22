@@ -38,10 +38,10 @@ __author__ = "Sebastian Heinlein, Michael Vogt"
 __version__ = "0.1.1.x"
 __status__ = "development"
 
-from ctypes import *
 import os
-from . import core
+from ctypes import *
 
+from . import core
 
 RR_ROTATE_0 = 1
 RR_ROTATE_90 = 2
@@ -82,8 +82,7 @@ RELATION_RIGHT_OF = 2
 RELATION_LEFT_OF = 3
 RELATION_SAME_AS = 4
 
-from .core import Screen, xlib, rr
-
+from .core import Screen, rr, xlib
 
 xopendisplay = None
 

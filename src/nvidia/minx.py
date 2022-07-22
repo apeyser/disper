@@ -16,11 +16,11 @@
 # By using, editing and/or distributing this software you agree to
 # the terms and conditions of this license.
 
-import struct
 import socket
+import struct
 from platform import architecture
-from . import xnet
 
+from . import xnet
 
 __XFORMATBYTES = {
     "CARD8": 1,

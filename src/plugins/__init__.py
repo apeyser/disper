@@ -13,8 +13,9 @@
 # By using, editing and/or distributing this software you agree to
 # the terms and conditions of this license.
 
-import os
 import logging
+import os
+
 from .hook import Hook
 from .plugin import Plugin
 

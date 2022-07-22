@@ -33,7 +33,6 @@ import gtk.gdk
 
 import xrandr
 
-
 # FIXME: Perhaps using gdk_x11_screen_get_xscreen would be more elegant
 
 

@@ -19,11 +19,8 @@
 # By using, editing and/or distributing this software you agree to
 # the terms and conditions of this license.
 
-from . import xnet
-from . import minx
-
+from . import minx, xnet
 from .nvtarget import *
-
 
 # NV-CONTROL integer attrs. this list contains constants defined in both
 # NVCtrl.h and NVCtrlAttributes.h. these constants are the attr codes

@@ -14,15 +14,15 @@
 # By using, editing and/or distributing this software you agree to
 # the terms and conditions of this license.
 
-import os
-import sys
 import logging
 import optparse
+import os
 import shlex
+import sys
 
-from switcher import Switcher, Resolution, ResolutionSelection
-from plugins import Plugins
 import build
+from plugins import Plugins
+from switcher import Resolution, ResolutionSelection, Switcher
 
 # make sure to handle SystemExit when using this class in a 3rd-party program
 

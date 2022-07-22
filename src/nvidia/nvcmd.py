@@ -20,9 +20,10 @@
 _all = ["GPU", "Screen", "NVidiaControl", "metamode_clone", "metamode_add_extend"]
 
 import re
-from .nvctrl import *
-from .nvctrl import NVidiaControl as NVidiaControlLowLevel
+
 from .metamodes import *
+from .nvctrl import NVidiaControl as NVidiaControlLowLevel
+from .nvctrl import *
 
 __BUS_TYPES = ["AGP", "PCI", "PCI Express", "Integrated"]
 __OS_TYPES = ["Linux", "FreeBSD", "SunOS"]

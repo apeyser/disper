@@ -13,9 +13,9 @@
 # By using, editing and/or distributing this software you agree to
 # the terms and conditions of this license.
 
+import logging
 import os
 import re
-import logging
 
 import nvidia
 
