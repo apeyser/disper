@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Python-XRandR provides a high level API for the XRandR extension of the
-# X.org server. XRandR allows to configure resolution, refresh rate, rotation 
+# X.org server. XRandR allows to configure resolution, refresh rate, rotation
 # of the screen and multiple outputs of graphics cards.
 #
 # This module allows to get information for gtk.gdk.Screen objects
@@ -27,6 +27,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 import pygtk
+
 pygtk.require("2.0")
 import gtk.gdk
 
@@ -48,5 +49,6 @@ def get_screen_config(screen):
     dpy_url = dpy.get_name()
     count = screen.get_number()
     return xrandr.get_screen_of_display(dpy_url, count)
+
 
 # vim:ts=4:sw=4:et

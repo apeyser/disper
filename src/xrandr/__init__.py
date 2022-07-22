@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Python-XRandR provides a high level API for the XRandR extension of the
-# X.org server. XRandR allows to configure resolution, refresh rate, rotation 
+# X.org server. XRandR allows to configure resolution, refresh rate, rotation
 # of the screen and multiple outputs of graphics cards.
 #
 # Copyright 2007 © Sebastian Heinlein <sebastian.heinlein@web.de>
@@ -110,7 +110,8 @@ def get_current_display():
 def get_current_screen():
     """Returns the currently used screen"""
     dpy = get_current_display()
-    if not dpy: return None
+    if not dpy:
+        return None
     screen = Screen(dpy)
     return screen
 
@@ -123,11 +124,12 @@ def get_screen_of_display(display, count):
 
 def get_version():
     """Returns a tuple containing the major and minor version of the xrandr
-       extension or None if the extension is not available"""
+    extension or None if the extension is not available"""
     major = c_int()
     minor = c_int()
     dpy = get_current_display()
-    if not dpy: return None
+    if not dpy:
+        return None
     res = core.rr.XRRQueryVersion(dpy, byref(major), byref(minor))
     if res:
         return (major.value, minor.value)
@@ -143,7 +145,7 @@ def has_extension():
 
 def _check_required_version(version):
     """Raises an exception if the given or a later version of xrandr is not
-       available"""
+    available"""
     if XRANDR_VERSION == None or XRANDR_VERSION < version:
         raise core.UnsupportedRRError(version, XRANDR_VERSION)
 
