@@ -39,4 +39,3 @@ switch)
 	notify-send -i disper "$TITLE" "$MESSAGE"
 	;;
 esac
-
